@@ -1,0 +1,6 @@
+weapons/sniper_fire.wav			AutoClassicMode/sniper_fire.wav
+weapons/uzi/fire_both1.wav		AutoClassicMode/uzi/fire_both1.wav
+weapons/uzi/fire_both2.wav		AutoClassicMode/uzi/fire_both2.wav
+weapons/m16_3round.wav			AutoClassicMode/m16_3round.wav
+weapons/sbarrel1.wav			hlclassic/weapons/sbarrel1.wav
+weapons/scock1.wav				hlclassic/weapons/scock1.wav
