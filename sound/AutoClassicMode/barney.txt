@@ -1,0 +1,1 @@
+weapons/pl_gun3.wav			barney/ba_attack2.wav
