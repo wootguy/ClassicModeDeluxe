@@ -6,6 +6,14 @@ dictionary classic_maps;
 
 bool isClassicMap = false;
 
+enum MODES {
+	MODE_AUTO = -1,
+	MODE_ALWAYS_OFF = 0,
+	MODE_ALWAYS_ON = 1
+}
+
+int g_force_mode = MODE_ALWAYS_ON;
+
 void loadMapList(File@ f=null)
 {	
 	if (f is null) {
@@ -40,6 +48,12 @@ void PluginInit()
 void MapInit()
 {
 	isClassicMap = classic_maps.exists(g_Engine.mapname);
+	if (g_force_mode == MODE_ALWAYS_ON)
+		isClassicMap = true;
+	else if (g_force_mode == MODE_ALWAYS_OFF)
+		isClassicMap = false;
+	
+	println("IS CLASSIC MAP PLUGIN? " + isClassicMap); 
 	
 	dictionary keys;
 	keys["targetname"] = "AutoClassicModeTrigger";
