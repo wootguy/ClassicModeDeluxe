@@ -79,6 +79,7 @@ namespace AutoClassicMode {
 		modelReplacements["models/hlclassic/hgrunt.mdl"] = true; // the vanilla classic grunt is missing rpg anims
 		modelReplacements["models/hlclassic/hassassin.mdl"] = true;
 		modelReplacements["models/hlclassic/islave.mdl"] = true;
+		modelReplacements["models/hlclassic/agrunt.mdl"] = true;
 		
 		modelReplacements["models/v_saw.mdl"] = true;
 		modelReplacements["models/p_saw.mdl"] = true;
@@ -143,6 +144,7 @@ namespace AutoClassicMode {
 		classicFriendlies["monster_grunt_repel"] = replacementModelPath + "hgruntf.mdl";
 		classicFriendlies["monster_human_assassin"] = replacementModelPath + "hassassinf.mdl";
 		classicFriendlies["monster_alien_slave"] = replacementModelPath + "islavef.mdl";
+		classicFriendlies["monster_alien_grunt"] = replacementModelPath + "agruntf.mdl";
 		
 		array<string> modelKeys = modelReplacements.getKeys();
 		for (uint i = 0; i < modelKeys.size(); i++)
@@ -492,6 +494,31 @@ namespace AutoClassicMode {
 		g_Scheduler.SetTimeout("MonitorHWGrunt", 0.1f, h_grunt);
 	}
 	
+	void MonitorTor(EHandle h_tor)
+	{
+		CBaseMonster@ tor = cast<CBaseMonster@>(h_tor.GetEntity());
+		if (tor is null or !tor.IsAlive())
+			return;
+		
+		// is it spawning an agrunt
+		
+		if (tor.pev.sequence == 13)
+		{
+			if (tor.pev.bInDuck == 0)
+			{
+				tor.pev.bInDuck = 1;
+				g_Scheduler.SetTimeout("UpdateMonsterModels", 2.5f);	
+				println("TOR SPAWNING " + tor.pev.sequence + " " + tor.pev.frame);
+				return;
+			}
+		}
+		else
+			tor.pev.bInDuck = 0;
+		
+		
+		g_Scheduler.SetTimeout("MonitorTor", 0.1f, h_tor);
+	}
+	
 	void UpdateModels(string cname)
 	{
 		CBaseEntity@ ent = null;
@@ -698,6 +725,11 @@ namespace AutoClassicMode {
 				if (int(cname.Find("monster_hwgrunt")) != -1)
 				{
 					MonitorHWGrunt(EHandle(ent));
+					continue;
+				}
+				if (cname == "monster_alien_tor")
+				{
+					MonitorTor(EHandle(ent));
 					continue;
 				}
 				
