@@ -1,6 +1,13 @@
 weapons/sniper_fire.wav			AutoClassicMode/sniper_fire.wav
-weapons/uzi/fire_both1.wav		AutoClassicMode/uzi/fire_both1.wav
-weapons/uzi/fire_both2.wav		AutoClassicMode/uzi/fire_both2.wav
-weapons/m16_3round.wav			AutoClassicMode/m16_3round.wav
+weapons/uzi/fire_both1.wav		AutoClassicMode/uzi_fire_both1.wav
+weapons/uzi/fire_both2.wav		AutoClassicMode/uzi_fire_both2.wav
+weapons/sniper_fire.wav			AutoClassicMode/sniper_fire.wav
+weapons/m16_3round.wav			hlclassic/hgrunt/gr_mgun1.wav
 weapons/sbarrel1.wav			hlclassic/weapons/sbarrel1.wav
-weapons/scock1.wav				hlclassic/weapons/scock1.wav
+weapons/scock1.wav			hlclassic/weapons/scock1.wav
+weapons/pl_gun3.wav			hlclassic/weapons/pl_gun3.wav
+weapons/hks1.wav			hlclassic/weapons/hks1.wav
+weapons/hks2.wav			hlclassic/weapons/hks2.wav
+weapons/hks3.wav			hlclassic/weapons/hks3.wav
+weapons/357_shot1.wav			hlclassic/weapons/357_shot1.wav
+weapons/357_shot2.wav			hlclassic/weapons/357_shot2.wav
