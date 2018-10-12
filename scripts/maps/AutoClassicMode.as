@@ -453,7 +453,10 @@ namespace AutoClassicMode {
 			if (weapons > lastWeapons[i])
 				ReplacePlayerWeapons(plr);
 			else if (weapons < lastWeapons[i])
+			{
 				UpdateModels("weapon_*");
+				UpdateModels("monster_shockroach");
+			}
 			lastWeapons[i] = weapons;
 		}
 		
