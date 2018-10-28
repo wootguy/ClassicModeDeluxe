@@ -34,12 +34,6 @@ namespace AutoClassicMode {
 	string replacementSpritePath = "sprites/AutoClassicMode/";
 	string replacementSoundPath = "AutoClassicMode/";
 	
-	string spawnHookName = "AutoClassicMode_MonsterSpawn";
-	string deathHookName = "AutoClassicMode_MonsterKilled";
-	string damageHookName = "AutoClassicMode_MonsterDamaged"; // for monsters that drop weapons when damaged (hwgrunt)
-	string breakableHookName = "AutoClassicMode_BreakableBroken"; // for func_breakables that spawn items
-	
-	array<int> lastAmmo; // ammo counts for all player active weapons
 	array<uint64> lastWeapons; // weapon states for all players (have/not have)
 	
 	// keep this in sync with sound/AutoClassicMode/weapons.txt
@@ -382,97 +376,155 @@ namespace AutoClassicMode {
 	{
 		return model.Replace("hlclassic/","").Replace("models/", replacementModelPath);
 	}
-	
-	string GetWeaponVModel(CBasePlayerWeapon@ wep)
-	{
-		string defaultModel;
-		defaultWeaponModels.get(wep.pev.classname, defaultModel);
-		if (defaultModel.Length() > 0)
-			defaultModel = "models/v_" + defaultModel + ".mdl";
-		return wep.GetV_Model(defaultModel);
-	}
-	
-	string GetWeaponPModel(CBasePlayerWeapon@ wep)
-	{
-		string defaultModel;
-		defaultWeaponModels.get(wep.pev.classname, defaultModel);
-		if (defaultModel == "minigun")
-			defaultModel = "minigunidle";
-		if (defaultModel.Length() > 0)
-			defaultModel = "models/p_" + defaultModel + ".mdl";
-		// TODO: golden uzi logic
-		return wep.GetP_Model(defaultModel);
-	}
-	
-	string GetWeaponWModel(CBasePlayerWeapon@ wep)
-	{
-		string defaultModel;
-		defaultWeaponModels.get(wep.pev.classname, defaultModel);
-		if (defaultModel.Length() > 0)
-			defaultModel = "models/w_" + defaultModel + ".mdl";
-		return wep.GetW_Model(defaultModel);
-	}
 
-	HookReturnCode EntityCreated(CBaseEntity@ ent)
+	bool ShouldUpdateSoundlist(CBaseMonster@ mon)
 	{
-		println("ZOMG ENT CREATED: " + ent.pev.classname);
-		return HOOK_CONTINUE;
+		// TODO: Check ALL possible sounds, not just the ones I want to replace
+		for (uint i = 0; i < replacedSounds.size(); i++)
+			if (mon.SOUNDREPLACEMENT_Find(replacedSounds[i]) != replacedSounds[i])
+				return false;
+		
+		return true;
 	}
 	
-	void MapInit(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
+	void ProcessMonster(EHandle h_mon)
 	{
-		g_Hooks.RegisterHook( Hooks::Game::EntityCreated, @EntityCreated );
+		if (!h_mon.IsValid())
+			return;
+		CBaseMonster@ mon = cast<CBaseMonster@>(h_mon.GetEntity());
 		
-		isClassicMap = caller.pev.rendermode == 1;
+		//println("Test " + mon.pev.model + " - " + mon.pev.classname);
+		string cname = mon.pev.classname;
+		string model = mon.pev.model;
 		
-		if (isClassicMap)
+		if (mapUsesGMR and autoReplaceMonsters.exists(cname))
 		{
-			g_ClassicMode.EnableMapSupport();
-			g_ClassicMode.SetShouldRestartOnChange(false);	
-		
-			array<ItemMapping@> itemMappings = { 
-				ItemMapping( "weapon_m16", "weapon_9mmAR" ),
-				ItemMapping( "ammo_556", "ammo_9mmbox" )
-			};
-			g_ClassicMode.SetItemMappings( @itemMappings );
+			string originalModel;
+			autoReplace.get(model, originalModel);
 			
-			initModelReplacements();
-			loadBlacklist();
+			if (blacklist.exists(originalModel))
+			{
+				println("Undoing model replacement for " + originalModel);
+				int idx = g_Game.PrecacheModel(originalModel);
+
+				int oldBody = mon.pev.body;
+				Vector mins = mon.pev.mins;
+				Vector maxs = mon.pev.maxs;
+				g_EntityFuncs.SetModel(mon, originalModel);
+				g_EntityFuncs.SetSize(mon.pev, mins, maxs);
+				mon.pev.body = oldBody;
+			}
 		}
 		
-		if (isClassicMap != g_ClassicMode.IsEnabled())
+		if (modelReplacements.exists(model) and not blacklist.exists(model))
 		{
-			println("\nOH NO IT WASNT " + isClassicMap + " GUESS GOTTA RESTART\n");
-			g_ClassicMode.SetEnabled(isClassicMap);
-			g_EngineFuncs.ChangeLevel(g_Engine.mapname);
-			return;
+			println("Le model replace " + cname);
+			
+			bool isGrunt = int(cname.Find("grunt")) != -1 and cname != "monster_alien_grunt";
+			bool isBarney = int(cname.Find("barney")) != -1;
+			// sound replacement
+			if (isGrunt or cname == "monster_male_assassin" or cname == "monster_assassin_repel" 
+				or cname == "monster_bodyguard" or isBarney)
+			{
+				if (ShouldUpdateSoundlist(mon))
+				{
+					//println("Add soundlist to " + ent.pev.classname);
+					string soundlist = "../AutoClassicMode/weapons.txt";
+					if (isBarney)
+						soundlist = "../AutoClassicMode/barney.txt";
+					mon.KeyValue("soundlist", soundlist);
+					mon.Precache(); // updates soundlist for some reason
+				}
+				else
+					println("Not updating monster soundlist because it already has one");
+			}
+			
+			bool isDead = int(cname.Find("_dead")) != -1;
+			
+			string replacement;
+			if (classicFriendlies.exists(cname))
+			{
+				if ((isBarney and mon.IRelationshipByClass(CLASS_PLAYER) > R_NO) or
+					(!isBarney and mon.IRelationshipByClass(CLASS_PLAYER) < R_NO))
+					classicFriendlies.get(mon.pev.classname, replacement);
+				else if (isGrunt and !isDead)
+					replacement = GetReplacementModel(model); // still want to replace the default model since its missing anims
+				else
+					return; // classic mode already replaced the model
+			}
+			else
+				replacement = GetReplacementModel(model);
+			
+			// update body groups
+			int newBody = 0;
+			int mdlIndex = g_ModelFuncs.ModelIndex(replacement);
+			for (int i = 0; i < 8; i++)
+				newBody |= g_ModelFuncs.SetBodygroup(mdlIndex, newBody, i, mon.GetBodygroup(i));
+			
+			if (mon.pev.classname == "monster_human_grunt") // grunt uses diff bodys for things, but somehow works without scripts
+			{
+				if (mon.pev.weapons & 1 != 0)
+					newBody |= g_ModelFuncs.SetBodygroup( mdlIndex, newBody, 2, 4); // mp5
+				if (mon.pev.weapons & 64 != 0)
+					newBody |= g_ModelFuncs.SetBodygroup( mdlIndex, newBody, 2, 3); // rpg
+				if (mon.pev.weapons & 128 != 0)
+					newBody |= g_ModelFuncs.SetBodygroup( mdlIndex, newBody, 2, 5); // sniper
+			}
+			mon.pev.body = newBody;
+				
+			println("AutoClassicMode(m): Replacing " + model + " -> " + replacement);
+			
+			int oldSequence = mon.pev.sequence;
+			Vector mins = mon.pev.mins;
+			Vector maxs = mon.pev.maxs;
+			g_EntityFuncs.SetModel(mon, replacement);
+			g_EntityFuncs.SetSize(mon.pev, mins, maxs);
+			mon.pev.sequence = oldSequence;
+			
+			if (cname == "monster_hevsuit_dead") {
+				mon.pev.sequence -= 104;
+				mon.pev.body = 1;
+			}
 		}
 	}
 	
-	void MapActivate(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
+	void ProcessGeneric(EHandle h_ent)
 	{
-		if (!isClassicMap)
+		if (!h_ent.IsValid())
 			return;
-		AddMonsterMakerHooks();
 		
-		if (mapUsesGMR)
-			AddBreakableHooks();
+		CBaseEntity@ ent = h_ent;		
 		
-		UpdateMonsterModels();
-		UpdateModels("weapon_*");
-		UpdateModels("ammo_*");
-		UpdateModels("item_*");
+		if (mapUsesGMR and classicItems.exists(ent.pev.classname))
+		{
+			string originalModel;
+			autoReplace.get(ent.pev.model, originalModel);
+			
+			if (blacklist.exists(originalModel))
+			{
+				println("Undoing model replacement for " + originalModel);
+				int idx = g_Game.PrecacheModel(originalModel);
+				g_EntityFuncs.SetModel(ent, originalModel);
+			}
+		}
 		
-		lastAmmo.resize(33);
-		lastWeapons.resize(33);
-		MonitorPlayerAmmoDropsAndWeaponPickups();
+		if (modelReplacements.exists(ent.pev.model))
+		{
+			string replacement = GetReplacementModel(ent.pev.model);					
+			println("AutoClassicMode(g): Replacing " + ent.pev.model + " -> " + replacement);
+			g_EntityFuncs.SetModel(ent, replacement);
+			ent.pev.pain_finished = 0; // special minigun keyvalue for this script
+		}
 	}
 	
-	bool RespawnFixedWeapon(EHandle h_wep)
+	void ProcessWeapon(EHandle h_wep)
 	{
+		if (!h_wep.IsValid())
+			return;
+			
 		CBasePlayerWeapon@ wep = cast<CBasePlayerWeapon@>(h_wep.GetEntity());
 		if (wep is null)
-			return false;
+			return;
 			
 		//println("Checking " + wep.pev.classname);
 		
@@ -481,11 +533,20 @@ namespace AutoClassicMode {
 		bool builtInClassicModeIsReplacingThis = classicItems.exists(wep.pev.classname);
 		
 		if (builtInClassicModeIsReplacingThis and !mapUsesGMR)
-			return false; // classic mode will do the swapping for us. Model keyvalues on entities won't be overridden
+			return; // classic mode will do the swapping for us. Model keyvalues on entities won't be overridden
 		
-		string vmodel = GetWeaponVModel(wep);
-		string pmodel = GetWeaponPModel(wep);
-		string wmodel = GetWeaponWModel(wep);
+		string defaultModelName;
+		defaultWeaponModels.get(wep.pev.classname, defaultModelName);
+		string defaultVModel = "models/v_" + defaultModelName + ".mdl";
+		string defaultPModel = "models/p_" + defaultModelName + ".mdl";
+		string defaultWModel = "models/w_" + defaultModelName + ".mdl";
+		
+		if (defaultPModel == "minigun")
+			defaultPModel = "minigunidle";
+		
+		string vmodel = wep.GetV_Model(defaultVModel);
+		string pmodel = wep.GetP_Model(defaultPModel);
+		string wmodel = wep.GetW_Model(defaultWModel);
 		
 		//println("Current models for " + wep.pev.classname + " are " + vmodel + " " + pmodel + " " +  wmodel);
 		
@@ -493,11 +554,6 @@ namespace AutoClassicMode {
 		// If it has a custom model I need to re-apply it or else classic mode will override the custom model.
 		// This isn't needed if the custom model was set on the entity, but there's no way to know if it was
 		// from that or from GMR, so I need to always re-apply custom models if the map uses GMR.
-		string defaultModelName;
-		defaultWeaponModels.get(wep.pev.classname, defaultModelName);
-		string defaultVModel = "models/v_" + defaultModelName + ".mdl";
-		string defaultPModel = "models/p_" + defaultModelName + ".mdl";
-		string defaultWModel = "models/w_" + defaultModelName + ".mdl";
 		
 		bool shouldSwap = false;
 		if (builtInClassicModeIsReplacingThis and defaultVModel != vmodel)
@@ -538,7 +594,7 @@ namespace AutoClassicMode {
 			wmodel = ""; // let classic mode replace it then
 		
 		if (!shouldSwap)
-			return false; // all models are custom or have no replacements
+			return; // all models are custom or have no replacements
 		
 		println("Replacement models are " + vmodel + " " + pmodel + " " +  wmodel);
 		
@@ -548,15 +604,89 @@ namespace AutoClassicMode {
 			wep.KeyValue("wpn_p_model", pmodel);
 		if (wmodel.Length() > 0)
 			wep.KeyValue("wpn_w_model", wmodel);
-		
-		// can't update world model for some reason
-		/*
-		wep.KeyValue("model", wmodel);
-		wep.KeyValue("weaponmodel", wmodel);
-		wep.SetupModel();
+			
 		g_EntityFuncs.SetModel(wep, wmodel);
-		*/
-		return true;
+		
+		CBasePlayer@ plr = cast<CBasePlayer@>(g_EntityFuncs.Instance(wep.pev.owner));
+		if (plr is null or !plr.IsConnected())
+			return;
+
+		// force model updates since the wep is already deployed
+		CBasePlayerWeapon@ activeWep = cast<CBasePlayerWeapon@>(plr.m_hActiveItem.GetEntity());
+		if (activeWep.entindex() == wep.entindex())
+		{
+			println("THIS IS ACTIVE WEP FOR " + plr.pev.netname);
+			if (vmodel.Length() > 0)
+				plr.pev.viewmodel = vmodel;
+			if (pmodel.Length() > 0)
+				plr.pev.weaponmodel = pmodel;
+		}
+	}
+	
+	HookReturnCode EntityCreated(CBaseEntity@ ent)
+	{
+		//println("ZOMG ENT CREATED: " + ent.pev.classname);
+		
+		if (ent.IsMonster())
+		{
+			g_Scheduler.SetTimeout("ProcessMonster", 0, EHandle(ent));
+			return HOOK_CONTINUE;
+		}
+		
+		CBasePlayerWeapon@ wep =cast<CBasePlayerWeapon@>(ent);
+		if (@wep != null)
+		{
+			g_Scheduler.SetTimeout("ProcessWeapon", 0, EHandle(ent));
+			return HOOK_CONTINUE;
+		}
+		
+		g_Scheduler.SetTimeout("ProcessGeneric", 0, EHandle(ent));
+		
+		return HOOK_CONTINUE;
+	}
+	
+	void MapInit(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
+	{
+		g_Hooks.RegisterHook( Hooks::Game::EntityCreated, @EntityCreated );
+		
+		isClassicMap = caller.pev.rendermode == 1;
+		
+		if (isClassicMap)
+		{
+			g_ClassicMode.EnableMapSupport();
+			g_ClassicMode.SetShouldRestartOnChange(false);	
+		
+			array<ItemMapping@> itemMappings = { 
+				ItemMapping( "weapon_m16", "weapon_9mmAR" ),
+				ItemMapping( "ammo_556", "ammo_9mmbox" )
+			};
+			g_ClassicMode.SetItemMappings( @itemMappings );
+			
+			initModelReplacements();
+			loadBlacklist();
+		}
+		
+		if (isClassicMap != g_ClassicMode.IsEnabled())
+		{
+			println("\nOH NO IT WASNT " + isClassicMap + " GUESS GOTTA RESTART\n");
+			g_ClassicMode.SetEnabled(isClassicMap);
+			g_EngineFuncs.ChangeLevel(g_Engine.mapname);
+			return;
+		}
+	}
+	
+	void MapActivate(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
+	{
+		if (!isClassicMap)
+			return;
+		
+		ProcessMonstersByClass("monster_*");
+		ProcessGenericByClass("weapon_*");
+		ProcessGenericByClass("ammo_*");
+		ProcessGenericByClass("item_*");
+		
+		lastWeapons.resize(33);
+		MonitorPlayerWeapons();
 	}
 	
 	void PlayerSpawn(CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE useType, float value)
@@ -580,40 +710,7 @@ namespace AutoClassicMode {
 			}
 		}
 	}
-	
-	void ReplacePlayerWeapons(CBasePlayer@ plr)
-	{
-		CBasePlayerWeapon@ activeWep = cast<CBasePlayerWeapon@>(plr.m_hActiveItem.GetEntity());;
-		for (uint i = 0; i < MAX_ITEM_TYPES; i++)
-		{
-			CBasePlayerItem@ item = plr.m_rgpPlayerItems(i);
-			while (item !is null)
-			{
-				CBasePlayerWeapon@ wep = cast<CBasePlayerWeapon@>(item);
-				if (wep !is null)	
-				{
-					bool wasReplaced = RespawnFixedWeapon(EHandle(wep));
-					if (wep.pev.classname == "weapon_9mmAR")
-					{
-						//wep.KeyValue("CustomSpriteDir", "AutoClassicMode");
-						wep.LoadSprites(plr, "AutoClassicMode/weapon_9mmar");
-					}
-					if (wasReplaced and activeWep.entindex() == wep.entindex())
-					{
-						string vmodel = GetWeaponVModel(wep);
-						string pmodel = GetWeaponPModel(wep);
-						if (vmodel.Length() > 0)
-							plr.pev.viewmodel = vmodel;
-						if (pmodel.Length() > 0)
-							plr.pev.weaponmodel = pmodel;
-					}
-				}
-				
-				@item = cast<CBasePlayerItem@>(item.m_hNextItem.GetEntity());	
-			}
-		}
-	}
-	
+		
 	void PlayerDie(CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE useType, float value)
 	{
 		CBasePlayer@ plr = cast<CBasePlayer@>(caller);
@@ -621,10 +718,11 @@ namespace AutoClassicMode {
 			return;
 		CBasePlayerWeapon@ wep = cast<CBasePlayerWeapon@>(plr.m_hActiveItem.GetEntity());
 		if (wep !is null)
-			g_Scheduler.SetTimeout("UpdateModels", 0.0f, string(wep.pev.classname));
+			g_Scheduler.SetTimeout("ProcessGenericByClass", 0.0f, string(wep.pev.classname));
 	}
 	
-	void MonitorPlayerAmmoDropsAndWeaponPickups()
+	// for some reason setting model on a weapon after it spawns doesn't affect the model used when dropped
+	void MonitorPlayerWeapons()
 	{
 		for ( int i = 1; i <= g_Engine.maxClients; i++ )
 		{
@@ -637,37 +735,6 @@ namespace AutoClassicMode {
 			{
 				lastWeapons[i] = 0;
 				continue;
-			}
-			
-			int ammoIdx = activeWep.PrimaryAmmoIndex();
-			if (ammoIdx != -1)
-			{
-				int ammoLeft = plr.m_rgAmmo(ammoIdx);
-				if (ammoLeft != lastAmmo[i])
-				{
-					lastAmmo[i] = ammoLeft;
-					string cname = activeWep.pev.classname;
-					
-					if (!mapUsesGMR)
-					{
-						if (cname == "weapon_uzi")
-							g_Scheduler.SetTimeout("UpdateModels", 0.0f, "ammo_uziclip");
-						else if (cname == "weapon_m249")
-							g_Scheduler.SetTimeout("UpdateModels", 0.0f, "ammo_556");
-						else if (cname == "weapon_sniperrifle")
-							g_Scheduler.SetTimeout("UpdateModels", 0.0f, "ammo_762");
-					}
-					else
-					{
-						if (cname == "weapon_satchel" or cname == "weapon_handgrenade" or 
-							cname == "weapon_tripmine" or cname == "weapon_snark")
-						{
-							g_Scheduler.SetTimeout("UpdateModels", 0.0f, cname);
-						}
-						else
-							g_Scheduler.SetTimeout("UpdateModels", 0.0f, "ammo_*");
-					}
-				}
 			}
 			
 			uint64 weapons = 0;
@@ -688,13 +755,13 @@ namespace AutoClassicMode {
 							if (int(string(plr.pev.weaponmodel).Find("AutoClassicMode")) != -1)
 							{
 								if (wep.m_fIsAkimbo)
-									plr.pev.weaponmodel = "models/AutoClassicMode/p_2uzis.mdl";
+									plr.pev.weaponmodel = replacementModelPath + "p_2uzis.mdl";
 								else
-									plr.pev.weaponmodel = "models/AutoClassicMode/p_uzi.mdl";
+									plr.pev.weaponmodel = replacementModelPath + "p_uzi.mdl";
 							}
 							// dropped uzi needs replacement when dual wielding
 							if (!wep.m_fIsAkimbo)
-								g_Scheduler.SetTimeout("UpdateModels", 0.0f, "weapon_uzi");
+								g_Scheduler.SetTimeout("ProcessGenericByClass", 0.0f, "weapon_uzi");
 						}
 						if (wep.pev.classname == "weapon_minigun")
 						{
@@ -704,9 +771,9 @@ namespace AutoClassicMode {
 							{
 								// primaryattack != -1 during deployment and player can spinup before it reaches -1
 								if (wep.m_flNextPrimaryAttack != -1 or plr.pev.button & (IN_ATTACK|IN_ATTACK2) != 0)
-									plr.pev.weaponmodel = "models/AutoClassicMode/p_minigunspin.mdl";
+									plr.pev.weaponmodel = replacementModelPath + "p_minigunspin.mdl";
 								else
-									plr.pev.weaponmodel = "models/AutoClassicMode/p_minigunidle.mdl";
+									plr.pev.weaponmodel = replacementModelPath + "p_minigunidle.mdl";
 							}
 							
 						}
@@ -716,427 +783,31 @@ namespace AutoClassicMode {
 					@item = cast<CBasePlayerItem@>(item.m_hNextItem.GetEntity());	
 				}
 			}
-			if (weapons > lastWeapons[i])
-				ReplacePlayerWeapons(plr);
-			else if (weapons < lastWeapons[i])
-			{
-				UpdateModels("weapon_*");
-				UpdateModels("monster_shockroach");
-			}
+			if (weapons < lastWeapons[i])
+				ProcessGenericByClass("weapon_*");
 			lastWeapons[i] = weapons;
 		}
 		
-		g_Scheduler.SetTimeout("MonitorPlayerAmmoDropsAndWeaponPickups", 0.05f);
+		g_Scheduler.SetTimeout("MonitorPlayerWeapons", 0.05f);
 	}
 	
-	void BreakableBroken(CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE useType, float value)
-	{
-		// Impossible to know which item spawned :/
-		UpdateModels("weapon_*");
-		UpdateModels("ammo_*");
-		UpdateModels("item_*");
-	}
-	
-	void MonsterSpawned(CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE useType, float value)
-	{
-		println("Le monster spawned " + caller.pev.classname + " " + activator.pev.classname);
-		UpdateMonsterModels();
-		AddMonsterDeathHooks();
-		
-		// also possible that an item was spawned
-		UpdateModels("weapon_*");
-		UpdateModels("ammo_*");
-		UpdateModels("item_*");
-	}
-	
-	void MonsterKilled(CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE useType, float value)
-	{
-		println("Le monster killed " + caller.pev.classname + " " + activator.pev.classname);
-		g_Scheduler.SetTimeout("UpdateMonsterModels", 0.4f);
-		g_Scheduler.SetTimeout("UpdateModels", 0.2f, "weapon_sniperrifle");
-	}
-	
-	void MonitorHWGrunt(EHandle h_grunt)
-	{
-		CBaseMonster@ grunt = cast<CBaseMonster@>(h_grunt.GetEntity());
-		if (grunt is null or !grunt.IsAlive())
-		{
-			g_Scheduler.SetTimeout("UpdateModels", 0.15f, "weapon_minigun");
-			if (grunt is null)
-				return;
-		}
-		
-		// did he drop the minigun? (weapons model group changed)
-		if (grunt.GetBodygroup(1) != grunt.pev.bInDuck) 
-		{
-			grunt.pev.bInDuck = grunt.GetBodygroup(1); // use bInDuck as a "lastWeaponState" variable
-			if (grunt.pev.bInDuck != 0)
-				g_Scheduler.SetTimeout("UpdateModels", 0.15f, "weapon_minigun");					
-		}
-		
-		g_Scheduler.SetTimeout("MonitorHWGrunt", 0.1f, h_grunt);
-	}
-	
-	void MonitorTor(EHandle h_tor)
-	{
-		CBaseMonster@ tor = cast<CBaseMonster@>(h_tor.GetEntity());
-		if (tor is null)
-			return;
-		
-		// is it spawning an agrunt?
-		if (tor.pev.sequence == 13)
-		{
-			if (tor.pev.bInDuck == 0)
-			{
-				tor.pev.bInDuck = 1;
-				g_Scheduler.SetTimeout("UpdateMonsterModels", 2.5f);
-			}
-		}
-		else
-			tor.pev.bInDuck = 0;
-		
-		
-		g_Scheduler.SetTimeout("MonitorTor", 0.1f, h_tor);
-	}
-	
-	void UpdateModels(string cname)
+	void ProcessMonstersByClass(string cname)
 	{
 		CBaseEntity@ ent = null;
 		do {
 			@ent = g_EntityFuncs.FindEntityByClassname(ent, cname);
 			if (ent !is null)
-			{
-				if (mapUsesGMR and classicItems.exists(ent.pev.classname))
-				{
-					string originalModel;
-					autoReplace.get(ent.pev.model, originalModel);
-					
-					if (blacklist.exists(originalModel))
-					{
-						println("Undoing model replacement for " + originalModel);
-						int idx = g_Game.PrecacheModel(originalModel);
-						g_EntityFuncs.SetModel(ent, originalModel);
-					}
-				}
-				
-				if (modelReplacements.exists(ent.pev.model))
-				{
-					string replacement = GetReplacementModel(ent.pev.model);					
-					println("AutoClassicMode(u): Replacing " + ent.pev.model + " -> " + replacement);
-					g_EntityFuncs.SetModel(ent, replacement);
-					ent.pev.pain_finished = 0; // special minigun keyvalue for this script
-				}
-			}
+				ProcessMonster(EHandle(ent));
 		} while (ent !is null);
-	}
-		
-	bool ShouldUpdateSoundlist(CBaseMonster@ mon)
-	{
-		// TODO: Check ALL possible sounds, not just the ones I want to replace
-		for (uint i = 0; i < replacedSounds.size(); i++)
-			if (mon.SOUNDREPLACEMENT_Find(replacedSounds[i]) != replacedSounds[i])
-				return false;
-		
-		return true;
-	}
-		
-	void UpdateMonsterModels()
-	{
-		bool checkAgainSoon = false;
-		CBaseEntity@ ent = null;
-		do {
-			@ent = g_EntityFuncs.FindEntityByClassname(ent, "monster_*");
-			CBaseMonster@ mon = cast<CBaseMonster@>(ent);
-			if (mon !is null)
-			{
-				//println("Test " + mon.pev.model + " - " + mon.pev.classname);
-				string cname = ent.pev.classname;
-				string model = mon.pev.model;
-				
-				if (mapUsesGMR and autoReplaceMonsters.exists(cname))
-				{
-					string originalModel;
-					autoReplace.get(model, originalModel);
-					
-					if (blacklist.exists(originalModel))
-					{
-						println("Undoing model replacement for " + originalModel);
-						int idx = g_Game.PrecacheModel(originalModel);
-
-						int oldBody = mon.pev.body;
-						Vector mins = mon.pev.mins;
-						Vector maxs = mon.pev.maxs;
-						g_EntityFuncs.SetModel(mon, originalModel);
-						g_EntityFuncs.SetSize(mon.pev, mins, maxs);
-						mon.pev.body = oldBody;
-					}
-				}
-				
-				if (modelReplacements.exists(model) and not blacklist.exists(model))
-				{
-					//println("Le model replace " + cname);
-					
-					bool isGrunt = int(cname.Find("grunt")) != -1 and cname != "monster_alien_grunt";
-					bool isBarney = int(cname.Find("barney")) != -1;
-					// sound replacement
-					if (isGrunt or cname == "monster_male_assassin" or cname == "monster_assassin_repel" 
-						or cname == "monster_bodyguard" or isBarney)
-					{
-						if (ShouldUpdateSoundlist(mon))
-						{
-							//println("Add soundlist to " + ent.pev.classname);
-							string soundlist = "../AutoClassicMode/weapons.txt";
-							if (isBarney)
-								soundlist = "../AutoClassicMode/barney.txt";
-							ent.KeyValue("soundlist", soundlist);
-							mon.Precache(); // updates soundlist for some reason
-						}
-						else
-							println("Not updating monster soundlist because it already has one");
-					}
-					
-					bool isDead = int(cname.Find("_dead")) != -1;
-					
-					string replacement;
-					if (classicFriendlies.exists(cname))
-					{
-						if ((isBarney and ent.IRelationshipByClass(CLASS_PLAYER) > R_NO) or
-							(!isBarney and ent.IRelationshipByClass(CLASS_PLAYER) < R_NO))
-							classicFriendlies.get(ent.pev.classname, replacement);
-						else if (isGrunt and !isDead)
-							replacement = GetReplacementModel(model); // still want to replace the default model since its missing anims
-						else
-							continue; // classic mode already replaced the model
-					}
-					else
-						replacement = GetReplacementModel(model);
-					
-					// update body groups
-					int newBody = 0;
-					int mdlIndex = g_ModelFuncs.ModelIndex(replacement);
-					for (int i = 0; i < 8; i++)
-						newBody |= g_ModelFuncs.SetBodygroup(mdlIndex, newBody, i, mon.GetBodygroup(i));
-					
-					if (ent.pev.classname == "monster_human_grunt") // grunt uses diff bodys for things, but somehow works without scripts
-					{
-						if (ent.pev.weapons & 1 != 0)
-							newBody |= g_ModelFuncs.SetBodygroup( mdlIndex, newBody, 2, 4); // mp5
-						if (ent.pev.weapons & 64 != 0)
-							newBody |= g_ModelFuncs.SetBodygroup( mdlIndex, newBody, 2, 3); // rpg
-						if (ent.pev.weapons & 128 != 0)
-							newBody |= g_ModelFuncs.SetBodygroup( mdlIndex, newBody, 2, 5); // sniper
-					}
-					mon.pev.body = newBody;
-						
-					println("AutoClassicMode(m): Replacing " + model + " -> " + replacement);
-					
-					int oldSequence = mon.pev.sequence;
-					Vector mins = mon.pev.mins;
-					Vector maxs = mon.pev.maxs;
-					g_EntityFuncs.SetModel(mon, replacement);
-					g_EntityFuncs.SetSize(mon.pev, mins, maxs);
-					mon.pev.sequence = oldSequence;
-					
-					if (cname == "monster_hevsuit_dead") {
-						mon.pev.sequence -= 104;
-						mon.pev.body = 1;
-					}
-				}
-				else if (!checkAgainSoon and string(model).Length() == 0)
-				{
-					// monsters that repel spawn slightly later
-					if (int(string(mon.pev.classname).Find("repel")) != -1)
-						checkAgainSoon = true;
-				}
-			}
-		} while (ent !is null);
-		
-		if (checkAgainSoon)
-			g_Scheduler.SetTimeout("UpdateMonsterModels", 0.2f);
 	}
 	
-	// monstermaker/squadmaker keyvalues can't be changed from scripts, so we'll have to update the monster mode manually
-	void AddMonsterMakerHooks()
+	void ProcessGenericByClass(string cname)
 	{
-		// stores the target of monstermakers that already have a target
-		dictionary hookNames; 
-		
-		bool anyMakers = false;
-		int totalEnts = 0;
 		CBaseEntity@ ent = null;
 		do {
-			@ent = g_EntityFuncs.FindEntityByClassname(ent, "*"); 
+			@ent = g_EntityFuncs.FindEntityByClassname(ent, cname);
 			if (ent !is null)
-			{
-				string cname = ent.pev.classname;
-				if (cname == "squadmaker" or cname == "monstermaker")
-				{
-					//println("GOT : " + ent.pev.classname + " " + ent.pev.targetname);
-					string target = string(ent.pev.target).ToLowercase();
-					if (ent.pev.target == spawnHookName)
-						continue;
-					if (target.Length() > 0)
-						hookNames[target] = true;
-					else
-						ent.pev.target = spawnHookName;
-					anyMakers = true;
-				}
-			}
-			totalEnts++;
+				ProcessGeneric(EHandle(ent));
 		} while (ent !is null);
-		
-		array<string> hookKeys = hookNames.getKeys();
-		if (hookKeys.size() + totalEnts > 8000) // actual max is 8192
-		{
-			println("AutoClassicMode: Failed to create monstermaker hooks. Too many entities required: " + hookKeys.size());
-			return;
-		}
-		
-		if (anyMakers)
-		{
-			dictionary keys;
-			keys["targetname"] = spawnHookName;
-			keys["m_iszScriptFile"] = "AutoClassicMode";
-			keys["m_iszScriptFunctionName"] = "AutoClassicMode::MonsterSpawned";
-			keys["m_iMode"] = "1";
-			g_EntityFuncs.CreateEntity("trigger_script", keys, true);
-		}
-		
-		// death
-		{
-			dictionary keys;
-			keys["targetname"] = deathHookName;
-			keys["m_iszScriptFile"] = "AutoClassicMode";
-			keys["m_iszScriptFunctionName"] = "AutoClassicMode::MonsterKilled";
-			keys["m_iMode"] = "1";
-			g_EntityFuncs.CreateEntity("trigger_script", keys, true);
-		}
-		
-		// monster damage
-		{
-			dictionary keys;
-			keys["targetname"] = damageHookName;
-			keys["m_iszScriptFile"] = "AutoClassicMode";
-			keys["m_iszScriptFunctionName"] = "AutoClassicMode::MonsterDamaged";
-			keys["m_iMode"] = "1";
-			g_EntityFuncs.CreateEntity("trigger_script", keys, true);
-		}
-		
-		for (uint i = 0; i < hookKeys.size(); i++)
-		{
-			dictionary keys;
-			keys["targetname"] = hookKeys[i];
-			keys["target"] = spawnHookName;
-			keys["spawnflags"] = "64"; // keep !activator
-			keys["triggerstate"] = "2";
-			g_EntityFuncs.CreateEntity("trigger_relay", keys, true);
-		}
-		
-		println("AutoClassicMode: created " + hookKeys.size() + " monster spawn hooks");
-	}
-	
-	void AddMonsterDeathHooks()
-	{		
-		dictionary hookNames; 
-		
-		CBaseEntity@ ent = null;
-		do {
-			@ent = g_EntityFuncs.FindEntityByClassname(ent, "monster_*"); 
-			CBaseMonster@ mon = cast<CBaseMonster@>(ent);
-			if (mon !is null)
-			{
-				string cname = ent.pev.classname;
-				if (int(cname.Find("monster_hwgrunt")) != -1)
-				{
-					MonitorHWGrunt(EHandle(ent));
-					continue;
-				}
-				if (cname == "monster_alien_tor")
-				{
-					MonitorTor(EHandle(ent));
-					continue;
-				}
-				
-				// sniper, sniper + HG
-				bool dropsWeps = cname == "monster_shocktrooper" or (cname == "monster_male_assassin" and (ent.pev.weapons == 8 or ent.pev.weapons == 10));
-				if (!dropsWeps)
-					continue;
-				
-				string target = string(mon.m_iszTriggerTarget).ToLowercase();
-				if (mon.m_iszTriggerTarget == deathHookName)
-					continue;
-				if (target.Length() > 0)
-				{
-					if (mon.m_iTriggerCondition == 4)
-						hookNames[target] = true;
-					else
-						println("Failed to add death hook for " + ent.pev.classname + " (" + target + " " + mon.m_iTriggerCondition + ")");
-				}
-				else
-				{
-					ent.pev.target = spawnHookName;
-					mon.m_iszTriggerTarget = deathHookName;
-					mon.m_iTriggerCondition = 4;
-				}
-			}
-		} while (ent !is null);
-		
-		array<string> hookKeys = hookNames.getKeys();
-		
-		for (uint i = 0; i < hookKeys.size(); i++)
-		{
-			dictionary keys;
-			keys["targetname"] = hookKeys[i];
-			keys["target"] = spawnHookName;
-			keys["spawnflags"] = "65"; // keep !activator and remove on fire
-			keys["triggerstate"] = "2";
-			CBaseEntity@ classicTrigger = g_EntityFuncs.CreateEntity("trigger_relay", keys, true);
-		}
-		
-		println("AutoClassicMode: created " + hookKeys.size() + " monster spawn hooks");
-	}
-
-	// hooks for breakables that spawn items
-	void AddBreakableHooks()
-	{
-		dictionary hookNames; 
-		
-		CBaseEntity@ ent = null;
-		do {
-			@ent = g_EntityFuncs.FindEntityByClassname(ent, "func_breakable");
-			if (ent !is null)
-			{
-				string target = string(ent.pev.target).ToLowercase();
-				if (target == breakableHookName)
-					continue;
-				if (target.Length() > 0)
-					hookNames[target] = true;
-				else
-					ent.pev.target = breakableHookName;
-			}
-		} while (ent !is null);
-		
-		array<string> hookKeys = hookNames.getKeys();
-		
-		{
-			dictionary keys;
-			keys["targetname"] = breakableHookName;
-			keys["m_iszScriptFile"] = "AutoClassicMode";
-			keys["m_iszScriptFunctionName"] = "AutoClassicMode::BreakableBroken";
-			keys["m_iMode"] = "1";
-			g_EntityFuncs.CreateEntity("trigger_script", keys, true);
-		}
-		
-		for (uint i = 0; i < hookKeys.size(); i++)
-		{
-			dictionary keys;
-			keys["targetname"] = hookKeys[i];
-			keys["target"] = breakableHookName;
-			keys["spawnflags"] = "65"; // keep !activator and remove on fire
-			keys["triggerstate"] = "2";
-			CBaseEntity@ classicTrigger = g_EntityFuncs.CreateEntity("trigger_relay", keys, true);
-		}
-		
-		println("AutoClassicMode: created " + hookKeys.size() + " func_breakable hooks");
 	}
 }
