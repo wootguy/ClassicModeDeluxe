@@ -1,0 +1,10 @@
+v_shotgun
+gonome
+islave
+zombie
+zombie_barney
+baby_headcrab
+bullsquid
+zombie_soldier
+headcrab
+big_mom

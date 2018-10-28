@@ -1,0 +1,7 @@
+hornet
+w_medkit
+w_battery
+w_9mmclip
+w_9mmarclip
+w_357ammo
+w_357ammobox

@@ -1,0 +1,15 @@
+metalplategibs_green
+metalgibs
+metalplategibs
+metalplategibs_dark
+w_squeak
+blkop_osprey
+blkop_bodygibs
+blkop_enginegibs
+blkop_tailgibs
+blkop_dead_osprey
+agrunt
+rpgrocket
+hvr
+hornet
+mortarshell

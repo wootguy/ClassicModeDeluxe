@@ -1,0 +1,13 @@
+w_m40a1clip
+v_crowbar
+p_crowbar
+w_crowbar
+v_357
+p_357
+w_357
+v_pipe_wrench
+p_pipe_wrench
+w_pipe_wrench
+v_egon
+p_egon
+w_egon

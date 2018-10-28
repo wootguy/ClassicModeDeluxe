@@ -1,0 +1,17 @@
+v_crowbar
+v_9mmar
+v_9mmhandgun
+v_grenade
+v_satchel
+v_satchel_radio
+v_shotgun
+barney
+hgrunt
+otis
+rgrunt
+tool_box
+zombie
+zombie_barney
+zombie_soldier
+scientist_cower
+scientist

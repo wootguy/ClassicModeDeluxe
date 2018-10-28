@@ -1,0 +1,15 @@
+p_357
+v_357
+w_357
+p_gauss
+v_gauss
+w_gauss
+p_egon
+v_egon
+w_egon
+gonome
+strooper
+controller
+bullsquid
+pit_drone
+baby_headcrab

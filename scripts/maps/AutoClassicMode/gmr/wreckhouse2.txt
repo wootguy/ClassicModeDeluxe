@@ -1,0 +1,16 @@
+p_pipe_wrench
+v_pipe_wrench
+w_pipe_wrench
+p_bgrap
+v_bgrap
+w_bgrap
+p_desert_eagle
+v_desert_eagle
+w_desert_eagle
+p_m40a1
+v_m40a1
+w_m40a1
+w_m40a1clip
+p_saw
+v_saw
+w_saw

@@ -1,0 +1,9 @@
+zombie
+zombie_barney
+zombie_soldier
+v_bgrap
+p_bgrap
+w_bgrap
+v_crowbar
+p_crowbar
+w_crowbar
