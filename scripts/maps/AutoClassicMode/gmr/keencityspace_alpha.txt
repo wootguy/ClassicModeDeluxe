@@ -1,0 +1,11 @@
+w_battery
+w_medkit
+v_shotgun
+zombie
+v_357
+w_357
+p_357
+v_crowbar
+w_crowbar
+p_crowbar
+hgruntf

@@ -1,0 +1,2 @@
+zombie
+zombie_soldier

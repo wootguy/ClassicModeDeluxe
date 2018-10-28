@@ -1,0 +1,5 @@
+v_medkit
+p_medkit
+w_pmedkit
+w_medkit
+w_battery

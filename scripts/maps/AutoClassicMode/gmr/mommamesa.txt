@@ -1,0 +1,14 @@
+v_shotgun
+p_bgrap
+v_bgrap
+w_bgrap
+p_hgun
+v_hgun
+w_hgun
+p_egon
+v_egon
+w_egon
+p_minigunidle
+p_minigunspin
+v_minigun
+w_minigun

@@ -1,0 +1,8 @@
+v_crowbar
+w_crowbar
+p_crowbar
+v_9mmar
+v_shotgun
+v_medkit
+w_medkit
+p_medkit

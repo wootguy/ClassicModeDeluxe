@@ -1,0 +1,6 @@
+v_medkit
+p_medkit
+w_pmedkit
+baby_headcrab
+w_medkit
+w_battery

@@ -1,4 +1,10 @@
 // TODO:
+// custom models replaced when they shouldn't be (hq2_19)
+// custom sounds replaced when they shouldnt be (sc_shogo_b)
+// tor grunts not always color changing (tor starts running instead of finishing spawn anim?)
+// weapons are aware of GMR. Try using that to check for blacklisted models
+// custom satchel model doesn't use radio
+// fix HL items that are GMR'd
 
 // Impossible replacements:
 // Player uzi shoot sound
@@ -10,6 +16,7 @@
 // golden uzi third-person model
 // muzzle-flashes (minigun?)
 // disable full-auto for shotgun/mp5 on npcs
+// custom sounds for HL monsters are ignored
 
 namespace AutoClassicMode {
 
@@ -18,9 +25,15 @@ namespace AutoClassicMode {
 	
 	bool isClassicMap = false;
 	
-	dictionary defaultWeaponModels;
+	dictionary classicItems; // weapons that the built-in classic mode replaces. Value is the model name.
+	dictionary defaultWeaponModels; // weapon models for the default weapons
 	dictionary modelReplacements;
 	dictionary classicFriendlies; // monsters that have friendly models but are also partially replaced by classic mode
+	dictionary autoReplace; // models that are automatically replaced by classic mode
+	dictionary autoReplaceMonsters; // monsters that classic mode replaces automatically
+	dictionary blacklist; // models that shouldn't be replaced because GMR is already replacing them
+	
+	bool mapUsesGMR = true;
 	
 	string replacementModelPath = "models/AutoClassicMode/";
 	string replacementSpritePath = "sprites/AutoClassicMode/";
@@ -29,6 +42,7 @@ namespace AutoClassicMode {
 	string spawnHookName = "AutoClassicMode_MonsterSpawn";
 	string deathHookName = "AutoClassicMode_MonsterKilled";
 	string damageHookName = "AutoClassicMode_MonsterDamaged"; // for monsters that drop weapons when damaged (hwgrunt)
+	string breakableHookName = "AutoClassicMode_BreakableBroken"; // for func_breakables that spawn items
 	
 	array<int> lastAmmo; // ammo counts for all player active weapons
 	array<uint64> lastWeapons; // weapon states for all players (have/not have)
@@ -75,6 +89,10 @@ namespace AutoClassicMode {
 		modelReplacements["models/hassassinf.mdl"] = true;
 		modelReplacements["models/hgruntf.mdl"] = true;
 		modelReplacements["models/islavef.mdl"] = true;
+		modelReplacements["models/player.mdl"] = true;
+		modelReplacements["models/gonome.mdl"] = true;
+		modelReplacements["models/tor.mdl"] = true;
+		modelReplacements["models/torf.mdl"] = true;
 		modelReplacements["models/hlclassic/barney.mdl"] = true;
 		modelReplacements["models/hlclassic/hgrunt.mdl"] = true; // the vanilla classic grunt is missing rpg anims
 		modelReplacements["models/hlclassic/hassassin.mdl"] = true;
@@ -96,6 +114,10 @@ namespace AutoClassicMode {
 		modelReplacements["models/v_displacer.mdl"] = true;
 		modelReplacements["models/p_displacer.mdl"] = true;
 		modelReplacements["models/w_displacer.mdl"] = true;
+		
+		modelReplacements["models/w_pipe_wrench.mdl"] = true;
+		modelReplacements["models/v_pipe_wrench.mdl"] = true;
+		modelReplacements["models/p_pipe_wrench.mdl"] = true;
 		
 		// TODO: dual and golden uzi models don't work (except for view model)
 		modelReplacements["models/v_uzi.mdl"] = true;
@@ -138,18 +160,186 @@ namespace AutoClassicMode {
 		defaultWeaponModels["weapon_grapple"] = "bgrap";
 		defaultWeaponModels["weapon_minigun"] = "minigun";
 		defaultWeaponModels["weapon_shockrifle"] = "shock";
+		defaultWeaponModels["weapon_pipewrench"] = "pipe_wrench";
+		defaultWeaponModels["weapon_crowbar"] = "crowbar";
+		defaultWeaponModels["weapon_medkit"] = "medkit";
+		defaultWeaponModels["weapon_9mmhandgun"] = "9mmhandgun";
+		defaultWeaponModels["weapon_357"] = "357";
+		defaultWeaponModels["weapon_9mmar"] = "9mmar";
+		defaultWeaponModels["weapon_shotgun"] = "shotgun";
+		defaultWeaponModels["weapon_crossbow"] = "crossbow";
+		defaultWeaponModels["weapon_rpg"] = "rpg";
+		defaultWeaponModels["weapon_gauss"] = "gauss";
+		defaultWeaponModels["weapon_egon"] = "egon";
+		defaultWeaponModels["weapon_handgrenade"] = "grenade";
+		defaultWeaponModels["weapon_satchel"] = "satchel";
+		defaultWeaponModels["weapon_tripmine"] = "tripmine";
+		defaultWeaponModels["weapon_snark"] = "squeak";
+		
+		classicItems["weapon_crowbar"] = "crowbar";
+		classicItems["weapon_medkit"] = "medkit";
+		classicItems["weapon_9mmhandgun"] = "9mmhandgun";
+		classicItems["weapon_357"] = "357";
+		classicItems["weapon_9mmar"] = "9mmar";
+		classicItems["weapon_shotgun"] = "shotgun";
+		classicItems["weapon_crossbow"] = "crossbow";
+		classicItems["weapon_rpg"] = "rpg";
+		classicItems["weapon_gauss"] = "gauss";
+		classicItems["weapon_egon"] = "egon";
+		classicItems["weapon_handgrenade"] = "grenade";
+		classicItems["weapon_satchel"] = "satchel";
+		classicItems["weapon_tripmine"] = "tripmine";
+		classicItems["weapon_snark"] = "squeak";
+		classicItems["ammo_357"] = "357ammobox";
+		classicItems["ammo_9mmar"] = "9mmarclip";
+		classicItems["ammo_9mmbox"] = "chainammo";
+		classicItems["ammo_9mmclip"] = "9mmclip";
+		classicItems["ammo_argrenades"] = "argrenade";
+		classicItems["ammo_buckshot"] = "shotbox";
+		classicItems["ammo_crossbow"] = "crossbow_clip";
+		classicItems["ammo_gaussclip"] = "gaussammo";
+		classicItems["ammo_rpgclip"] = "rpgammo";
+		classicItems["item_battery"] = "battery";
+		classicItems["item_healthkit"] = "medkit";
+		classicItems["item_longjump"] = "longjump";
+		classicItems["item_suit"] = "suit";
 		
 		classicFriendlies["monster_barney"] = replacementModelPath + "barnabus.mdl";
+		classicFriendlies["monster_barney_dead"] = replacementModelPath + "barnabus.mdl";
 		classicFriendlies["monster_human_grunt"] = replacementModelPath + "hgruntf.mdl";
+		classicFriendlies["monster_hgrunt_dead"] = replacementModelPath + "hgruntf.mdl";
 		classicFriendlies["monster_grunt_repel"] = replacementModelPath + "hgruntf.mdl";
 		classicFriendlies["monster_human_assassin"] = replacementModelPath + "hassassinf.mdl";
 		classicFriendlies["monster_alien_slave"] = replacementModelPath + "islavef.mdl";
 		classicFriendlies["monster_alien_grunt"] = replacementModelPath + "agruntf.mdl";
 		
+		autoReplace["models/hlclassic/agrunt.mdl"] = "models/agrunt.mdl";
+		autoReplace["models/hlclassic/apache.mdl"] = "models/apache.mdl";
+		autoReplace["models/hlclassic/barnacle.mdl"] = "models/barnacle.mdl";
+		autoReplace["models/hlclassic/barney.mdl"] = "models/barney.mdl";
+		autoReplace["models/hlclassic/bullsquid.mdl"] = "models/bullsquid.mdl";
+		autoReplace["models/hlclassic/garg.mdl"] = "models/garg.mdl";
+		autoReplace["models/hlclassic/gman.mdl"] = "models/gman.mdl";
+		autoReplace["models/hlclassic/grenade.mdl"] = "models/grenade.mdl";
+		autoReplace["models/hlclassic/hassassin.mdl"] = "models/hassassin.mdl";
+		autoReplace["models/hlclassic/headcrab.mdl"] = "models/headcrab.mdl";
+		autoReplace["models/hlclassic/hgrunt.mdl"] = "models/hgrunt.mdl";
+		autoReplace["models/hlclassic/holo.mdl"] = "models/holo.mdl";
+		autoReplace["models/hlclassic/houndeye.mdl"] = "models/houndeye.mdl";
+		autoReplace["models/hlclassic/icky.mdl"] = "models/icky.mdl";
+		autoReplace["models/hlclassic/islave.mdl"] = "models/islave.mdl";
+		autoReplace["models/hlclassic/osprey.mdl"] = "models/osprey.mdl";
+		autoReplace["models/hlclassic/osprey_bodygibs.mdl"] = "models/osprey_bodygibs.mdl";
+		autoReplace["models/hlclassic/osprey_enginegibs.mdl"] = "models/osprey_enginegibs.mdl";
+		autoReplace["models/hlclassic/osprey_tailgibs.mdl"] = "models/osprey_tailgibs.mdl";
+		autoReplace["models/hlclassic/player.mdl"] = "models/player.mdl";
+		autoReplace["models/hlclassic/p_357.mdl"] = "models/p_357.mdl";
+		autoReplace["models/hlclassic/p_9mmar.mdl"] = "models/p_9mmar.mdl";
+		autoReplace["models/hlclassic/p_9mmhandgun.mdl"] = "models/p_9mmhandgun.mdl";
+		autoReplace["models/hlclassic/p_crossbow.mdl"] = "models/p_crossbow.mdl";
+		autoReplace["models/hlclassic/p_crowbar.mdl"] = "models/p_crowbar.mdl";
+		autoReplace["models/hlclassic/p_egon.mdl"] = "models/p_egon.mdl";
+		autoReplace["models/hlclassic/p_gauss.mdl"] = "models/p_gauss.mdl";
+		autoReplace["models/hlclassic/p_glock.mdl"] = "models/p_glock.mdl";
+		autoReplace["models/hlclassic/p_grenade.mdl"] = "models/p_grenade.mdl";
+		autoReplace["models/hlclassic/p_hgun.mdl"] = "models/p_hgun.mdl";
+		autoReplace["models/hlclassic/p_medkit.mdl"] = "models/p_medkit.mdl";
+		autoReplace["models/hlclassic/p_rpg.mdl"] = "models/p_rpg.mdl";
+		autoReplace["models/hlclassic/p_satchel.mdl"] = "models/p_satchel.mdl";
+		autoReplace["models/hlclassic/p_satchel_radio.mdl"] = "models/p_satchel_radio.mdl";
+		autoReplace["models/hlclassic/p_shotgun.mdl"] = "models/p_shotgun.mdl";
+		autoReplace["models/hlclassic/p_squeak.mdl"] = "models/p_squeak.mdl";
+		autoReplace["models/hlclassic/p_tripmine.mdl"] = "models/p_tripmine.mdl";
+		autoReplace["models/hlclassic/roach.mdl"] = "models/roach.mdl";
+		autoReplace["models/hlclassic/rpgrocket.mdl"] = "models/rpgrocket.mdl";
+		autoReplace["models/hlclassic/scientist.mdl"] = "models/scientist.mdl";
+		autoReplace["models/hlclassic/scigun.mdl"] = "models/scigun.mdl";
+		autoReplace["models/hlclassic/shell.mdl"] = "models/shell.mdl";
+		autoReplace["models/hlclassic/shotgunshell.mdl"] = "models/shotgunshell.mdl";
+		autoReplace["models/hlclassic/tentacle2.mdl"] = "models/tentacle2.mdl";
+		autoReplace["models/hlclassic/v_357.mdl"] = "models/v_357.mdl";
+		autoReplace["models/hlclassic/v_9mmAR.mdl"] = "models/v_9mmAR.mdl";
+		autoReplace["models/hlclassic/v_9mmhandgun.mdl"] = "models/v_9mmhandgun.mdl";
+		autoReplace["models/hlclassic/v_crossbow.mdl"] = "models/v_crossbow.mdl";
+		autoReplace["models/hlclassic/v_crowbar.mdl"] = "models/v_crowbar.mdl";
+		autoReplace["models/hlclassic/v_egon.mdl"] = "models/v_egon.mdl";
+		autoReplace["models/hlclassic/v_gauss.mdl"] = "models/v_gauss.mdl";
+		autoReplace["models/hlclassic/v_grenade.mdl"] = "models/v_grenade.mdl";
+		autoReplace["models/hlclassic/v_HGun.mdl"] = "models/v_HGun.mdl";
+		autoReplace["models/hlclassic/v_medkit.mdl"] = "models/v_medkit.mdl";
+		autoReplace["models/hlclassic/v_rpg.mdl"] = "models/v_rpg.mdl";
+		autoReplace["models/hlclassic/v_satchel.mdl"] = "models/v_satchel.mdl";
+		autoReplace["models/hlclassic/v_satchel_radio.mdl"] = "models/v_satchel_radio.mdl";
+		autoReplace["models/hlclassic/v_shotgun.mdl"] = "models/v_shotgun.mdl";
+		autoReplace["models/hlclassic/v_squeak.mdl"] = "models/v_squeak.mdl";
+		autoReplace["models/hlclassic/v_tripmine.mdl"] = "models/v_tripmine.mdl";
+		autoReplace["models/hlclassic/w_357.mdl"] = "models/w_357.mdl";
+		autoReplace["models/hlclassic/w_357ammo.mdl"] = "models/w_357ammo.mdl";
+		autoReplace["models/hlclassic/w_357ammobox.mdl"] = "models/w_357ammobox.mdl";
+		autoReplace["models/hlclassic/w_9mmar.mdl"] = "models/w_9mmar.mdl";
+		autoReplace["models/hlclassic/w_9mmarclip.mdl"] = "models/w_9mmarclip.mdl";
+		autoReplace["models/hlclassic/w_9mmclip.mdl"] = "models/w_9mmclip.mdl";
+		autoReplace["models/hlclassic/w_9mmhandgun.mdl"] = "models/w_9mmhandgun.mdl";
+		autoReplace["models/hlclassic/w_argrenade.mdl"] = "models/w_argrenade.mdl";
+		autoReplace["models/hlclassic/w_battery.mdl"] = "models/w_battery.mdl";
+		autoReplace["models/hlclassic/w_chainammo.mdl"] = "models/w_chainammo.mdl";
+		autoReplace["models/hlclassic/w_crossbow.mdl"] = "models/w_crossbow.mdl";
+		autoReplace["models/hlclassic/w_crossbow_clip.mdl"] = "models/w_crossbow_clip.mdl";
+		autoReplace["models/hlclassic/w_crowbar.mdl"] = "models/w_crowbar.mdl";
+		autoReplace["models/hlclassic/w_egon.mdl"] = "models/w_egon.mdl";
+		autoReplace["models/hlclassic/w_gauss.mdl"] = "models/w_gauss.mdl";
+		autoReplace["models/hlclassic/w_gaussammo.mdl"] = "models/w_gaussammo.mdl";
+		autoReplace["models/hlclassic/w_grenade.mdl"] = "models/w_grenade.mdl";
+		autoReplace["models/hlclassic/w_hgun.mdl"] = "models/w_hgun.mdl";
+		autoReplace["models/hlclassic/w_longjump.mdl"] = "models/w_longjump.mdl";
+		autoReplace["models/hlclassic/w_medkit.mdl"] = "models/w_medkit.mdl";
+		autoReplace["models/hlclassic/w_pmedkit.mdl"] = "models/w_pmedkit.mdl";
+		autoReplace["models/hlclassic/w_rpg.mdl"] = "models/w_rpg.mdl";
+		autoReplace["models/hlclassic/w_rpgammo.mdl"] = "models/w_rpgammo.mdl";
+		autoReplace["models/hlclassic/w_satchel.mdl"] = "models/w_satchel.mdl";
+		autoReplace["models/hlclassic/w_shotbox.mdl"] = "models/w_shotbox.mdl";
+		autoReplace["models/hlclassic/w_shotgun.mdl"] = "models/w_shotgun.mdl";
+		autoReplace["models/hlclassic/w_shotshell.mdl"] = "models/w_shotshell.mdl";
+		autoReplace["models/hlclassic/w_sqknest.mdl"] = "models/w_sqknest.mdl";
+		autoReplace["models/hlclassic/w_squeak.mdl"] = "models/w_squeak.mdl";
+		autoReplace["models/hlclassic/w_suit.mdl"] = "models/w_suit.mdl";
+		autoReplace["models/hlclassic/w_tripmine.mdl"] = "models/w_tripmine.mdl";
+		autoReplace["models/hlclassic/w_weaponbox.mdl"] = "models/w_weaponbox.mdl";
+		autoReplace["models/hlclassic/zombie.mdl"] = "models/zombie.mdl";
+		
+		autoReplaceMonsters["monster_agrunt"] = true;
+		autoReplaceMonsters["monster_apache"] = true;
+		autoReplaceMonsters["monster_barnacle"] = true;
+		autoReplaceMonsters["monster_barney"] = true;
+		autoReplaceMonsters["monster_bullsquid"] = true;
+		autoReplaceMonsters["monster_gargantua"] = true;
+		autoReplaceMonsters["monster_gman"] = true;
+		autoReplaceMonsters["monster_human_assassin"] = true;
+		autoReplaceMonsters["monster_headcrab"] = true;
+		autoReplaceMonsters["monster_human_grunt"] = true;
+		autoReplaceMonsters["monster_human_grunt"] = true;
+		autoReplaceMonsters["monster_houndeye"] = true;
+		autoReplaceMonsters["monster_ichthyosaur"] = true;
+		autoReplaceMonsters["monster_alien_slave"] = true;
+		autoReplaceMonsters["monster_osprey"] = true;
+		autoReplaceMonsters["monster_cockroach"] = true;
+		autoReplaceMonsters["monster_scientist"] = true;
+		autoReplaceMonsters["monster_sitting_scientist"] = true;
+		autoReplaceMonsters["monster_tentacle"] = true;
+		autoReplaceMonsters["monster_zombie"] = true;
+		
 		array<string> modelKeys = modelReplacements.getKeys();
 		for (uint i = 0; i < modelKeys.size(); i++)
 			g_Game.PrecacheModel(GetReplacementModel(modelKeys[i]));
 			
+		modelKeys = autoReplace.getKeys();
+		for (uint i = 0; i < modelKeys.size(); i++)
+		{
+			string model;
+			autoReplace.get(modelKeys[i], model);
+			g_Game.PrecacheModel(model);
+		}
+		
 		g_Game.PrecacheModel(replacementSpritePath + "640hud1.spr");
 		g_Game.PrecacheModel(replacementSpritePath + "640hud4.spr");
 		g_Game.PrecacheGeneric(replacementSpritePath + "weapon_9mmar.txt");
@@ -159,6 +349,29 @@ namespace AutoClassicMode {
 		PrecacheSound(replacementSoundPath + "sniper_fire.wav");
 		PrecacheSound(replacementSoundPath + "uzi/fire_both1.wav");
 		PrecacheSound(replacementSoundPath + "uzi/fire_both2.wav");
+	}
+	
+	void loadBlacklist()
+	{
+		string fpath = "scripts/maps/AutoClassicMode/gmr/" + string(g_Engine.mapname).ToLowercase() + ".txt";
+		File@ f = g_FileSystem.OpenFile( fpath, OpenFile::READ );
+		if( f is null or !f.IsOpen())
+		{
+			println("AutoClassicMode: Model blacklist not found: " + fpath);
+			return;
+		}
+
+		int linesRead = 0;
+		string line;
+		while( !f.EOFReached() )
+		{
+			f.ReadLine(line);
+			string model = "models/" + line + ".mdl";		
+			blacklist[model] = true;
+		}
+		
+		mapUsesGMR = true;
+		println("AutoClassicMode: Loaded model replacement blacklist");
 	}
 	
 	void PrecacheSound(string snd)
@@ -218,6 +431,7 @@ namespace AutoClassicMode {
 			g_ClassicMode.SetItemMappings( @itemMappings );
 			
 			initModelReplacements();
+			loadBlacklist();
 		}
 		
 		if (isClassicMap != g_ClassicMode.IsEnabled())
@@ -234,7 +448,14 @@ namespace AutoClassicMode {
 		if (!isClassicMap)
 			return;
 		AddMonsterMakerHooks();
+		
+		if (mapUsesGMR)
+			AddBreakableHooks();
+		
 		UpdateMonsterModels();
+		UpdateModels("weapon_*");
+		UpdateModels("ammo_*");
+		UpdateModels("item_*");
 		
 		lastAmmo.resize(33);
 		lastWeapons.resize(33);
@@ -246,47 +467,57 @@ namespace AutoClassicMode {
 		CBasePlayerWeapon@ wep = cast<CBasePlayerWeapon@>(h_wep.GetEntity());
 		if (wep is null)
 			return false;
+			
+		println("Checking " + wep.pev.classname);
 		
 		string cname = wep.pev.classname;
 		
-		if (!defaultWeaponModels.exists(wep.pev.classname))
+		bool builtInClassicModeIsReplacingThis = classicItems.exists(wep.pev.classname);
+		
+		if (builtInClassicModeIsReplacingThis and blacklist.empty())
 			return false; // not a swap target
 		
 		string vmodel = GetWeaponVModel(wep);
 		string pmodel = GetWeaponPModel(wep);
 		string wmodel = GetWeaponWModel(wep);
 		
-		//println("Current models for " + wep.pev.classname + " are " + vmodel + " " + pmodel + " " +  wmodel);
+		println("Current models for " + wep.pev.classname + " are " + vmodel + " " + pmodel + " " +  wmodel);
 		
-		bool shouldSwap = false;
-		if (modelReplacements.exists(vmodel))
+		bool shouldSwap = builtInClassicModeIsReplacingThis;
+		if (blacklist.exists(vmodel))
+		{
+			shouldSwap = true;
+		}
+		else if (modelReplacements.exists(vmodel))
 		{
 			vmodel = GetReplacementModel(vmodel);
 			shouldSwap = true;
 		}
-		else
-			vmodel = "";
 			
-		if (modelReplacements.exists(pmodel))
+		if (blacklist.exists(pmodel))
+		{
+			shouldSwap = true;
+		}
+		else if (modelReplacements.exists(pmodel))
 		{
 			pmodel = GetReplacementModel(pmodel);
 			shouldSwap = true;
 		}
-		else
-			pmodel = "";
-			
-		if (modelReplacements.exists(wmodel))
+		
+		if (blacklist.exists(wmodel))
+		{
+			shouldSwap = true;
+		}		
+		else if (modelReplacements.exists(wmodel))
 		{
 			wmodel = GetReplacementModel(wmodel);
 			shouldSwap = true;
 		}
-		else
-			wmodel = "";
 		
 		if (!shouldSwap)
 			return false; // all models are custom or have no replacements
 		
-		//println("Replacement models are " + vmodel + " " + pmodel + " " +  wmodel + " " + isOldMp5);
+		println("Replacement models are " + vmodel + " " + pmodel + " " +  wmodel);
 		
 		if (vmodel.Length() > 0)
 			wep.KeyValue("wpn_v_model", vmodel);
@@ -294,8 +525,6 @@ namespace AutoClassicMode {
 			wep.KeyValue("wpn_p_model", pmodel);
 		if (wmodel.Length() > 0)
 			wep.KeyValue("wpn_w_model", wmodel);
-		
-		
 		
 		// can't update world model for some reason
 		/*
@@ -395,12 +624,26 @@ namespace AutoClassicMode {
 				{
 					lastAmmo[i] = ammoLeft;
 					string cname = activeWep.pev.classname;
-					if (cname == "weapon_uzi")
-						g_Scheduler.SetTimeout("UpdateModels", 0.0f, "ammo_uziclip");
-					else if (cname == "weapon_m249")
-						g_Scheduler.SetTimeout("UpdateModels", 0.0f, "ammo_556");
-					else if (cname == "weapon_sniperrifle")
-						g_Scheduler.SetTimeout("UpdateModels", 0.0f, "ammo_762");
+					
+					if (!mapUsesGMR)
+					{
+						if (cname == "weapon_uzi")
+							g_Scheduler.SetTimeout("UpdateModels", 0.0f, "ammo_uziclip");
+						else if (cname == "weapon_m249")
+							g_Scheduler.SetTimeout("UpdateModels", 0.0f, "ammo_556");
+						else if (cname == "weapon_sniperrifle")
+							g_Scheduler.SetTimeout("UpdateModels", 0.0f, "ammo_762");
+					}
+					else
+					{
+						if (cname == "weapon_satchel" or cname == "weapon_handgrenade" or 
+							cname == "weapon_tripmine" or cname == "weapon_snark")
+						{
+							g_Scheduler.SetTimeout("UpdateModels", 0.0f, cname);
+						}
+						else
+							g_Scheduler.SetTimeout("UpdateModels", 0.0f, "ammo_*");
+					}
 				}
 			}
 			
@@ -463,6 +706,14 @@ namespace AutoClassicMode {
 		g_Scheduler.SetTimeout("MonitorPlayerAmmoDropsAndWeaponPickups", 0.05f);
 	}
 	
+	void BreakableBroken(CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE useType, float value)
+	{
+		// Impossible to know which item spawned :/
+		UpdateModels("weapon_*");
+		UpdateModels("ammo_*");
+		UpdateModels("item_*");
+	}
+	
 	void MonsterSpawned(CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE useType, float value)
 	{
 		println("Le monster spawned " + caller.pev.classname + " " + activator.pev.classname);
@@ -483,7 +734,8 @@ namespace AutoClassicMode {
 		if (grunt is null or !grunt.IsAlive())
 		{
 			g_Scheduler.SetTimeout("UpdateModels", 0.15f, "weapon_minigun");
-			return;
+			if (grunt is null)
+				return;
 		}
 		
 		// did he drop the minigun? (weapons model group changed)
@@ -500,18 +752,16 @@ namespace AutoClassicMode {
 	void MonitorTor(EHandle h_tor)
 	{
 		CBaseMonster@ tor = cast<CBaseMonster@>(h_tor.GetEntity());
-		if (tor is null or !tor.IsAlive())
+		if (tor is null)
 			return;
 		
-		// is it spawning an agrunt
-		
+		// is it spawning an agrunt?
 		if (tor.pev.sequence == 13)
 		{
 			if (tor.pev.bInDuck == 0)
 			{
 				tor.pev.bInDuck = 1;
-				g_Scheduler.SetTimeout("UpdateMonsterModels", 2.5f);	
-				println("TOR SPAWNING " + tor.pev.sequence + " " + tor.pev.frame);
+				g_Scheduler.SetTimeout("UpdateMonsterModels", 2.6f);
 				return;
 			}
 		}
@@ -529,12 +779,25 @@ namespace AutoClassicMode {
 			@ent = g_EntityFuncs.FindEntityByClassname(ent, cname);
 			if (ent !is null)
 			{
+				if (mapUsesGMR and classicItems.exists(ent.pev.classname))
+				{
+					string originalModel;
+					autoReplace.get(ent.pev.model, originalModel);
+					
+					if (blacklist.exists(originalModel))
+					{
+						println("Undoing model replacement for " + originalModel);
+						int idx = g_Game.PrecacheModel(originalModel);
+						g_EntityFuncs.SetModel(ent, originalModel);
+					}
+				}
+				
 				if (modelReplacements.exists(ent.pev.model))
 				{
 					string replacement = GetReplacementModel(ent.pev.model);					
-					println("AutoClassicMode: Replacing " + ent.pev.model + " -> " + replacement);
+					println("AutoClassicMode(u): Replacing " + ent.pev.model + " -> " + replacement);
 					g_EntityFuncs.SetModel(ent, replacement);
-					ent.pev.pain_finished = 0; // special minigun keyvalue that for this script
+					ent.pev.pain_finished = 0; // special minigun keyvalue for this script
 				}
 			}
 		} while (ent !is null);
@@ -559,22 +822,38 @@ namespace AutoClassicMode {
 			CBaseMonster@ mon = cast<CBaseMonster@>(ent);
 			if (mon !is null)
 			{
-				println("Test " + mon.pev.model + " - " + mon.pev.classname);
+				//println("Test " + mon.pev.model + " - " + mon.pev.classname);
+				string cname = ent.pev.classname;
+				string model = mon.pev.model;
 				
-				if (modelReplacements.exists(mon.pev.model))
+				if (mapUsesGMR and autoReplaceMonsters.exists(cname))
 				{
-					string cname = ent.pev.classname;
-					println("Le model replace " + cname);
+					string originalModel;
+					autoReplace.get(model, originalModel);
 					
+					if (blacklist.exists(originalModel))
+					{
+						println("Undoing model replacement for " + originalModel);
+						int idx = g_Game.PrecacheModel(originalModel);
+						g_EntityFuncs.SetModel(mon, originalModel);
+					}
+				}
+				
+				if (modelReplacements.exists(model) and not blacklist.exists(model))
+				{
+					//println("Le model replace " + cname);
+					
+					bool isGrunt = int(cname.Find("grunt")) != -1 and cname != "monster_alien_grunt";
+					bool isBarney = int(cname.Find("barney")) != -1;
 					// sound replacement
-					if (int(cname.Find("grunt")) != -1 or cname == "monster_male_assassin" or cname == "monster_assassin_repel" 
-						or cname == "monster_bodyguard" or cname == "monster_barney")
+					if (isGrunt or cname == "monster_male_assassin" or cname == "monster_assassin_repel" 
+						or cname == "monster_bodyguard" or isBarney)
 					{
 						if (ShouldUpdateSoundlist(mon))
 						{
-							println("Add soundlist to " + ent.pev.classname);
+							//println("Add soundlist to " + ent.pev.classname);
 							string soundlist = "../AutoClassicMode/weapons.txt";
-							if (cname == "monster_barney")
+							if (isBarney)
 								soundlist = "../AutoClassicMode/barney.txt";
 							ent.KeyValue("soundlist", soundlist);
 							mon.Precache(); // updates soundlist for some reason
@@ -583,19 +862,21 @@ namespace AutoClassicMode {
 							println("Not updating monster soundlist because it already has one");
 					}
 					
+					bool isDead = int(cname.Find("_dead")) != -1;
+					
 					string replacement;
 					if (classicFriendlies.exists(cname))
 					{
-						if ((cname == "monster_barney" and ent.IRelationshipByClass(CLASS_PLAYER) > R_NO) or
-							(cname != "monster_barney" and ent.IRelationshipByClass(CLASS_PLAYER) < R_NO))
+						if ((isBarney and ent.IRelationshipByClass(CLASS_PLAYER) > R_NO) or
+							(!isBarney and ent.IRelationshipByClass(CLASS_PLAYER) < R_NO))
 							classicFriendlies.get(ent.pev.classname, replacement);
-						else if (int(cname.Find("grunt")) != -1)
-							replacement = GetReplacementModel(mon.pev.model); // still want to replace the default model since its missing anims
+						else if (isGrunt and !isDead)
+							replacement = GetReplacementModel(model); // still want to replace the default model since its missing anims
 						else
 							continue; // classic mode already replaced the model
 					}
 					else
-						replacement = GetReplacementModel(mon.pev.model);
+						replacement = GetReplacementModel(model);
 					
 					// update body groups
 					int newBody = 0;
@@ -614,14 +895,21 @@ namespace AutoClassicMode {
 					}
 					mon.pev.body = newBody;
 						
-					println("AutoClassicMode: Replacing " + mon.pev.model + " -> " + replacement);
+					println("AutoClassicMode(m): Replacing " + model + " -> " + replacement);
 					
+					int oldSequence = mon.pev.sequence;
 					Vector mins = mon.pev.mins;
 					Vector maxs = mon.pev.maxs;
 					g_EntityFuncs.SetModel(mon, replacement);
 					g_EntityFuncs.SetSize(mon.pev, mins, maxs);
+					mon.pev.sequence = oldSequence;
+					
+					if (cname == "monster_hevsuit_dead") {
+						mon.pev.sequence -= 104;
+						mon.pev.body = 1;
+					}
 				}
-				else if (!checkAgainSoon and string(mon.pev.model).Length() == 0)
+				else if (!checkAgainSoon and string(model).Length() == 0)
 				{
 					// monsters that repel spawn slightly later
 					if (int(string(mon.pev.classname).Find("repel")) != -1)
@@ -650,7 +938,7 @@ namespace AutoClassicMode {
 				string cname = ent.pev.classname;
 				if (cname == "squadmaker" or cname == "monstermaker")
 				{
-					println("GOT : " + ent.pev.classname + " " + ent.pev.targetname);
+					//println("GOT : " + ent.pev.classname + " " + ent.pev.targetname);
 					string target = string(ent.pev.target).ToLowercase();
 					if (ent.pev.target == spawnHookName)
 						continue;
@@ -773,5 +1061,49 @@ namespace AutoClassicMode {
 		}
 		
 		println("AutoClassicMode: created " + hookKeys.size() + " monster spawn hooks");
+	}
+
+	// hooks for breakables that spawn items
+	void AddBreakableHooks()
+	{
+		dictionary hookNames; 
+		
+		CBaseEntity@ ent = null;
+		do {
+			@ent = g_EntityFuncs.FindEntityByClassname(ent, "func_breakable");
+			if (ent !is null)
+			{
+				string target = string(ent.pev.target).ToLowercase();
+				if (target == breakableHookName)
+					continue;
+				if (target.Length() > 0)
+					hookNames[target] = true;
+				else
+					ent.pev.target = breakableHookName;
+			}
+		} while (ent !is null);
+		
+		array<string> hookKeys = hookNames.getKeys();
+		
+		{
+			dictionary keys;
+			keys["targetname"] = breakableHookName;
+			keys["m_iszScriptFile"] = "AutoClassicMode";
+			keys["m_iszScriptFunctionName"] = "AutoClassicMode::BreakableBroken";
+			keys["m_iMode"] = "1";
+			g_EntityFuncs.CreateEntity("trigger_script", keys, true);
+		}
+		
+		for (uint i = 0; i < hookKeys.size(); i++)
+		{
+			dictionary keys;
+			keys["targetname"] = hookKeys[i];
+			keys["target"] = breakableHookName;
+			keys["spawnflags"] = "65"; // keep !activator and remove on fire
+			keys["triggerstate"] = "2";
+			CBaseEntity@ classicTrigger = g_EntityFuncs.CreateEntity("trigger_relay", keys, true);
+		}
+		
+		println("AutoClassicMode: created " + hookKeys.size() + " func_breakable hooks");
 	}
 }

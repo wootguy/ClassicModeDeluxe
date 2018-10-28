@@ -1,0 +1,15 @@
+scientist
+hgrunt
+crossbow_bolt
+shotgunshell
+w_crossbow_clip
+w_9mmclip
+w_shotbox
+w_medkit
+w_9mmarclip
+w_mp5_clip
+v_satchel_radio
+p_satchel_radio
+v_satchel
+w_satchel
+p_satchel

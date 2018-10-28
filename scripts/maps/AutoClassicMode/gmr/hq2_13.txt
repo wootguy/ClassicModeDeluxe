@@ -1,0 +1,10 @@
+barney
+headcrab
+hgrunt
+islave
+miniturret
+scientist
+turret
+w_crowbar
+p_crowbar
+v_crowbar

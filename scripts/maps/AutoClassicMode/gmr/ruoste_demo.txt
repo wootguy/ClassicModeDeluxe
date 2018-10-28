@@ -1,0 +1,11 @@
+v_desert_eagle
+w_desert_eagle
+p_desert_eagle
+v_crowbar
+w_crowbar
+p_crowbar
+v_medkit
+p_medkit
+barnabus
+barney
+hgrunt
