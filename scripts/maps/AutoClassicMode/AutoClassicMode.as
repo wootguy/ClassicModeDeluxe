@@ -161,7 +161,7 @@ namespace AutoClassicMode {
 		defaultWeaponModels["weapon_medkit"] = "medkit";
 		defaultWeaponModels["weapon_9mmhandgun"] = "9mmhandgun";
 		defaultWeaponModels["weapon_357"] = "357";
-		defaultWeaponModels["weapon_9mmar"] = "9mmar";
+		defaultWeaponModels["weapon_9mmAR"] = "9mmar";
 		defaultWeaponModels["weapon_shotgun"] = "shotgun";
 		defaultWeaponModels["weapon_crossbow"] = "crossbow";
 		defaultWeaponModels["weapon_rpg"] = "rpg";
@@ -176,7 +176,7 @@ namespace AutoClassicMode {
 		classicItems["weapon_medkit"] = "medkit";
 		classicItems["weapon_9mmhandgun"] = "9mmhandgun";
 		classicItems["weapon_357"] = "357";
-		classicItems["weapon_9mmar"] = "9mmar";
+		classicItems["weapon_9mmAR"] = "9mmar";
 		classicItems["weapon_shotgun"] = "shotgun";
 		classicItems["weapon_crossbow"] = "crossbow";
 		classicItems["weapon_rpg"] = "rpg";
@@ -413,8 +413,16 @@ namespace AutoClassicMode {
 		return wep.GetW_Model(defaultModel);
 	}
 
+	HookReturnCode EntityCreated(CBaseEntity@ ent)
+	{
+		println("ZOMG ENT CREATED: " + ent.pev.classname);
+		return HOOK_CONTINUE;
+	}
+	
 	void MapInit(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
 	{
+		g_Hooks.RegisterHook( Hooks::Game::EntityCreated, @EntityCreated );
+		
 		isClassicMap = caller.pev.rendermode == 1;
 		
 		if (isClassicMap)
