@@ -1,10 +1,5 @@
 // TODO:
-// custom models replaced when they shouldn't be (hq2_19)
-// custom sounds replaced when they shouldnt be (sc_shogo_b)
-// tor grunts not always color changing (tor starts running instead of finishing spawn anim?)
-// weapons are aware of GMR. Try using that to check for blacklisted models
-// custom satchel model doesn't use radio
-// fix HL items that are GMR'd
+
 
 // Impossible replacements:
 // Player uzi shoot sound
@@ -16,7 +11,8 @@
 // golden uzi third-person model
 // muzzle-flashes (minigun?)
 // disable full-auto for shotgun/mp5 on npcs
-// custom sounds for HL monsters are ignored
+// custom soundlists for the HL grunt are ignored
+// satchel models replaced with GMR AND classic mode prevents radio model from showing
 
 namespace AutoClassicMode {
 
@@ -24,6 +20,7 @@ namespace AutoClassicMode {
 	void println(string text) { print(text + "\n"); }
 	
 	bool isClassicMap = false;
+	bool mapUsesGMR = true;
 	
 	dictionary classicItems; // weapons that the built-in classic mode replaces. Value is the model name.
 	dictionary defaultWeaponModels; // weapon models for the default weapons
@@ -32,8 +29,6 @@ namespace AutoClassicMode {
 	dictionary autoReplace; // models that are automatically replaced by classic mode
 	dictionary autoReplaceMonsters; // monsters that classic mode replaces automatically
 	dictionary blacklist; // models that shouldn't be replaced because GMR is already replacing them
-	
-	bool mapUsesGMR = true;
 	
 	string replacementModelPath = "models/AutoClassicMode/";
 	string replacementSpritePath = "sprites/AutoClassicMode/";
@@ -93,6 +88,7 @@ namespace AutoClassicMode {
 		modelReplacements["models/gonome.mdl"] = true;
 		modelReplacements["models/tor.mdl"] = true;
 		modelReplacements["models/torf.mdl"] = true;
+		modelReplacements["models/hgrunt.mdl"] = true;
 		modelReplacements["models/hlclassic/barney.mdl"] = true;
 		modelReplacements["models/hlclassic/hgrunt.mdl"] = true; // the vanilla classic grunt is missing rpg anims
 		modelReplacements["models/hlclassic/hassassin.mdl"] = true;
@@ -330,7 +326,10 @@ namespace AutoClassicMode {
 		
 		array<string> modelKeys = modelReplacements.getKeys();
 		for (uint i = 0; i < modelKeys.size(); i++)
-			g_Game.PrecacheModel(GetReplacementModel(modelKeys[i]));
+		{
+			if (int(modelKeys[i].Find("hlclassic/")) == -1)
+				g_Game.PrecacheModel(GetReplacementModel(modelKeys[i]));
+		}
 			
 		modelKeys = autoReplace.getKeys();
 		for (uint i = 0; i < modelKeys.size(); i++)
@@ -345,10 +344,9 @@ namespace AutoClassicMode {
 		g_Game.PrecacheGeneric(replacementSpritePath + "weapon_9mmar.txt");
 		
 		// precache weapon sound replacements for monsters
-		PrecacheSound(replacementSoundPath + "m16_3round.wav");
 		PrecacheSound(replacementSoundPath + "sniper_fire.wav");
-		PrecacheSound(replacementSoundPath + "uzi/fire_both1.wav");
-		PrecacheSound(replacementSoundPath + "uzi/fire_both2.wav");
+		PrecacheSound(replacementSoundPath + "uzi_fire_both1.wav");
+		PrecacheSound(replacementSoundPath + "uzi_fire_both2.wav");
 	}
 	
 	void loadBlacklist()
@@ -468,23 +466,33 @@ namespace AutoClassicMode {
 		if (wep is null)
 			return false;
 			
-		println("Checking " + wep.pev.classname);
+		//println("Checking " + wep.pev.classname);
 		
 		string cname = wep.pev.classname;
 		
 		bool builtInClassicModeIsReplacingThis = classicItems.exists(wep.pev.classname);
 		
-		if (builtInClassicModeIsReplacingThis and blacklist.empty())
-			return false; // not a swap target
+		if (builtInClassicModeIsReplacingThis and !mapUsesGMR)
+			return false; // classic mode will do the swapping for us. Model keyvalues on entities won't be overridden
 		
 		string vmodel = GetWeaponVModel(wep);
 		string pmodel = GetWeaponPModel(wep);
 		string wmodel = GetWeaponWModel(wep);
 		
-		println("Current models for " + wep.pev.classname + " are " + vmodel + " " + pmodel + " " +  wmodel);
+		//println("Current models for " + wep.pev.classname + " are " + vmodel + " " + pmodel + " " +  wmodel);
 		
-		bool shouldSwap = builtInClassicModeIsReplacingThis;
-		if (blacklist.exists(vmodel))
+		// the GetWeaponModel funcs account for GMR, but not for classic mode.
+		// If it has a custom model I need to re-apply it or else classic mode will override the custom model.
+		// This isn't needed if the custom model was set on the entity, but there's no way to know if it was
+		// from that or from GMR, so I need to always re-apply custom models if the map uses GMR.
+		string defaultModelName;
+		defaultWeaponModels.get(wep.pev.classname, defaultModelName);
+		string defaultVModel = "models/v_" + defaultModelName + ".mdl";
+		string defaultPModel = "models/p_" + defaultModelName + ".mdl";
+		string defaultWModel = "models/w_" + defaultModelName + ".mdl";
+		
+		bool shouldSwap = false;
+		if (builtInClassicModeIsReplacingThis and defaultVModel != vmodel)
 		{
 			shouldSwap = true;
 		}
@@ -493,8 +501,11 @@ namespace AutoClassicMode {
 			vmodel = GetReplacementModel(vmodel);
 			shouldSwap = true;
 		}
+		else if (builtInClassicModeIsReplacingThis and mapUsesGMR)
+			vmodel = ""; // let classic mode replace it then
 			
-		if (blacklist.exists(pmodel))
+			
+		if (builtInClassicModeIsReplacingThis and defaultPModel != pmodel)
 		{
 			shouldSwap = true;
 		}
@@ -503,8 +514,10 @@ namespace AutoClassicMode {
 			pmodel = GetReplacementModel(pmodel);
 			shouldSwap = true;
 		}
+		else if (builtInClassicModeIsReplacingThis and mapUsesGMR)
+			pmodel = ""; // let classic mode replace it then
 		
-		if (blacklist.exists(wmodel))
+		if (builtInClassicModeIsReplacingThis and defaultWModel != wmodel)
 		{
 			shouldSwap = true;
 		}		
@@ -513,6 +526,8 @@ namespace AutoClassicMode {
 			wmodel = GetReplacementModel(wmodel);
 			shouldSwap = true;
 		}
+		else if (builtInClassicModeIsReplacingThis and mapUsesGMR)
+			wmodel = ""; // let classic mode replace it then
 		
 		if (!shouldSwap)
 			return false; // all models are custom or have no replacements
@@ -569,13 +584,13 @@ namespace AutoClassicMode {
 				CBasePlayerWeapon@ wep = cast<CBasePlayerWeapon@>(item);
 				if (wep !is null)	
 				{
-					RespawnFixedWeapon(EHandle(wep));
+					bool wasReplaced = RespawnFixedWeapon(EHandle(wep));
 					if (wep.pev.classname == "weapon_9mmAR")
 					{
 						//wep.KeyValue("CustomSpriteDir", "AutoClassicMode");
 						wep.LoadSprites(plr, "AutoClassicMode/weapon_9mmar");
 					}
-					if (activeWep.entindex() == wep.entindex())
+					if (wasReplaced and activeWep.entindex() == wep.entindex())
 					{
 						string vmodel = GetWeaponVModel(wep);
 						string pmodel = GetWeaponPModel(wep);
@@ -719,6 +734,11 @@ namespace AutoClassicMode {
 		println("Le monster spawned " + caller.pev.classname + " " + activator.pev.classname);
 		UpdateMonsterModels();
 		AddMonsterDeathHooks();
+		
+		// also possible that an item was spawned
+		UpdateModels("weapon_*");
+		UpdateModels("ammo_*");
+		UpdateModels("item_*");
 	}
 	
 	void MonsterKilled(CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE useType, float value)
@@ -761,8 +781,7 @@ namespace AutoClassicMode {
 			if (tor.pev.bInDuck == 0)
 			{
 				tor.pev.bInDuck = 1;
-				g_Scheduler.SetTimeout("UpdateMonsterModels", 2.6f);
-				return;
+				g_Scheduler.SetTimeout("UpdateMonsterModels", 2.5f);
 			}
 		}
 		else
@@ -835,7 +854,13 @@ namespace AutoClassicMode {
 					{
 						println("Undoing model replacement for " + originalModel);
 						int idx = g_Game.PrecacheModel(originalModel);
+
+						int oldBody = mon.pev.body;
+						Vector mins = mon.pev.mins;
+						Vector maxs = mon.pev.maxs;
 						g_EntityFuncs.SetModel(mon, originalModel);
+						g_EntityFuncs.SetSize(mon.pev, mins, maxs);
+						mon.pev.body = oldBody;
 					}
 				}
 				
