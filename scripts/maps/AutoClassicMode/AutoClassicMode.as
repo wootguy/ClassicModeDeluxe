@@ -64,10 +64,51 @@ namespace AutoClassicMode {
 		"weapons/scock1.wav"
 	};
 	
-	void PrecacheSound(string snd)
+	void MapInit(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
 	{
-		g_SoundSystem.PrecacheSound(snd);
-		g_Game.PrecacheGeneric("sound/" + snd);
+		int mapInfo = caller.pev.rendermode;
+		isClassicMap = mapInfo & 1 != 0;
+		mapType = mapInfo >> 1;
+		
+		if (isClassicMap)
+		{
+			g_Hooks.RegisterHook( Hooks::Game::EntityCreated, @EntityCreated );
+			g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @PlayerTakeDamage );
+			
+			g_ClassicMode.EnableMapSupport();
+			g_ClassicMode.SetShouldRestartOnChange(false);	
+		
+			array<ItemMapping@> itemMappings = { 
+				ItemMapping( "weapon_m16", "weapon_9mmAR" ),
+				ItemMapping( "ammo_556", "ammo_9mmbox" )
+			};
+			g_ClassicMode.SetItemMappings( @itemMappings );
+			
+			initReplacements();
+			loadBlacklist();
+		}
+		
+		if (isClassicMap != g_ClassicMode.IsEnabled())
+		{
+			g_ClassicMode.SetEnabled(isClassicMap);
+			g_EngineFuncs.ChangeLevel(g_Engine.mapname);
+			return;
+		}
+	}
+	
+	void MapActivate(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
+	{
+		if (!isClassicMap)
+			return;
+		
+		ProcessMonstersByClass("monster_*");
+		ProcessWeaponByClass("weapon_*");
+		ProcessGenericByClass("ammo_*");
+		ProcessGenericByClass("item_*");
+		
+		lastWeapons.resize(33);
+		satchels.resize(33);
+		MonitorPlayerWeapons();
 	}
 	
 	string GetReplacementWeaponModel(string model, string subfolder)
@@ -440,10 +481,19 @@ namespace AutoClassicMode {
 		return HOOK_CONTINUE;
 	}
 	
+	HookReturnCode PlayerTakeDamage(DamageInfo@ info)
+	{
+		CBasePlayer@ plr = cast<CBasePlayer@>(g_EntityFuncs.Instance(info.pVictim.pev));
+		HalfLifeTakeDamage(plr, info.pAttacker.pev, info.pInflictor.pev, info.flDamage, info.bitsDamageType);
+		info.flDamage = 0; // bypass sven's damage logic
+		return HOOK_CONTINUE;
+	}
+	
 	int HalfLifeTakeDamage(CBasePlayer@ plr, entvars_t@ pevInflictor, entvars_t@ pevAttacker, float flDamage, int bitsDamageType)
 	{
 		const float ARMOR_RATIO = 0.2f; // Armor takes 80% of the damage
 		const float ARMOR_BONUS = 0.5f; // Each point of armer is worth 1/x points of health
+		
 		const int SUIT_NEXT_IN_30SEC = 30;
 		const int SUIT_NEXT_IN_1MIN	= 60;
 		const int SUIT_NEXT_IN_5MIN	= 300;
@@ -632,61 +682,6 @@ namespace AutoClassicMode {
 		}
 
 		return 1;
-	}
-	
-	HookReturnCode PlayerTakeDamage(DamageInfo@ info)
-	{
-		CBasePlayer@ plr = cast<CBasePlayer@>(g_EntityFuncs.Instance(info.pVictim.pev));
-		HalfLifeTakeDamage(plr, info.pAttacker.pev, info.pInflictor.pev, info.flDamage, info.bitsDamageType);
-		info.flDamage = 0; // bypass sven's TakeDamage
-		return HOOK_CONTINUE;
-	}
-	
-	void MapInit(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
-	{
-		int mapInfo = caller.pev.rendermode;
-		isClassicMap = mapInfo & 1 != 0;
-		mapType = mapInfo >> 1;
-		
-		if (isClassicMap)
-		{
-			g_Hooks.RegisterHook( Hooks::Game::EntityCreated, @EntityCreated );
-			g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @PlayerTakeDamage );
-			
-			g_ClassicMode.EnableMapSupport();
-			g_ClassicMode.SetShouldRestartOnChange(false);	
-		
-			array<ItemMapping@> itemMappings = { 
-				ItemMapping( "weapon_m16", "weapon_9mmAR" ),
-				ItemMapping( "ammo_556", "ammo_9mmbox" )
-			};
-			g_ClassicMode.SetItemMappings( @itemMappings );
-			
-			initReplacements();
-			loadBlacklist();
-		}
-		
-		if (isClassicMap != g_ClassicMode.IsEnabled())
-		{
-			g_ClassicMode.SetEnabled(isClassicMap);
-			g_EngineFuncs.ChangeLevel(g_Engine.mapname);
-			return;
-		}
-	}
-	
-	void MapActivate(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
-	{
-		if (!isClassicMap)
-			return;
-		
-		ProcessMonstersByClass("monster_*");
-		ProcessWeaponByClass("weapon_*");
-		ProcessGenericByClass("ammo_*");
-		ProcessGenericByClass("item_*");
-		
-		lastWeapons.resize(33);
-		satchels.resize(33);
-		MonitorPlayerWeapons();
 	}
 	
 	void PlayerSpawn(CBaseEntity@ activator, CBaseEntity@ caller, USE_TYPE useType, float value)

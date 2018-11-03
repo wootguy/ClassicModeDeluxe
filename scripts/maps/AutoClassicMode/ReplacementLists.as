@@ -1,6 +1,12 @@
 
 namespace AutoClassicMode {
 
+	void PrecacheSound(string snd)
+	{
+		g_SoundSystem.PrecacheSound(snd);
+		g_Game.PrecacheGeneric("sound/" + snd);
+	}
+
 	void loadBlacklist()
 	{
 		string fpath = "scripts/maps/AutoClassicMode/gmr/" + string(g_Engine.mapname).ToLowercase() + ".txt";
