@@ -1,6 +1,6 @@
 // TODO:
 // replace sci model for ba_yard4
-// if any map has a custom satchel but not a custom satchel_radio then the radio will be invisible
+// if any map has a custom satchel but not a custom satchel_radio then the MAP WILL CRASH
 
 // Impossible replacements:
 // Player uzi shoot sound
@@ -37,6 +37,7 @@ namespace AutoClassicMode {
 	dictionary autoReplacements; // models that are automatically replaced by classic mode but maybe shouldn't be in GMR mode
 	dictionary autoReplacementMonsters; // monsters that classic mode replaces automatically
 	dictionary blacklist; // models that shouldn't be replaced because GMR is already replacing them
+	dictionary soundReplacements; // monsters that should have their sounds replaced
 	
 	// themed weapons for specific maps
 	dictionary op4_weapons;
@@ -241,6 +242,19 @@ namespace AutoClassicMode {
 		modelReplacements["models/w_weaponbox.mdl"] = "models/hlclassic/w_weaponbox.mdl";
 		modelReplacements["models/zombie.mdl"] = "models/hlclassic/zombie.mdl";
 		
+		soundReplacements["monster_barney"] = "../AutoClassicMode/barney.txt";
+		soundReplacements["monster_bodyguard"] = "../AutoClassicMode/weapons.txt";
+		soundReplacements["monster_grunt_ally_repel"] = "../AutoClassicMode/weapons.txt";
+		soundReplacements["monster_grunt_repel"] = "../AutoClassicMode/weapons.txt";
+		soundReplacements["monster_human_assassin"] = "../AutoClassicMode/weapons.txt";
+		soundReplacements["monster_human_grunt"] = "../AutoClassicMode/weapons.txt";
+		soundReplacements["monster_human_grunt_ally"] = "../AutoClassicMode/weapons.txt";
+		soundReplacements["monster_hwgrunt"] = "../AutoClassicMode/weapons.txt";
+		soundReplacements["monster_hwgrunt_repel"] = "../AutoClassicMode/weapons.txt";
+		soundReplacements["monster_male_assassin"] = "../AutoClassicMode/weapons.txt";
+		soundReplacements["monster_robogrunt"] = "../AutoClassicMode/weapons.txt";
+		soundReplacements["monster_robogrunt_repel"] = "../AutoClassicMode/weapons.txt";
+		
 		defaultWeaponModels["weapon_m249"] = "saw";
 		defaultWeaponModels["weapon_sniperrifle"] = "m40a1";
 		defaultWeaponModels["weapon_sporelauncher"] = "spore_launcher";
@@ -300,7 +314,6 @@ namespace AutoClassicMode {
 		op4_weapons["weapon_9mmAR"] = true;
 		op4_weapons["weapon_9mmhandgun"] = true;
 		op4_weapons["weapon_357"] = true;
-		op4_weapons["weapon_crowbar"] = true;
 		op4_weapons["weapon_medkit"] = true;
 		op4_weapons["weapon_shotgun"] = true;
 		op4_weapons["weapon_crossbow"] = true;
@@ -316,6 +329,7 @@ namespace AutoClassicMode {
 		op4_weapons["weapon_sporelauncher"] = true;
 		op4_weapons["weapon_m249"] = true;
 		op4_weapons["weapon_pipewrench"] = true;
+		op4_weapons["weapon_minigun"] = true;
 		
 		bshift_weapons["weapon_9mmAR"] = true;
 		bshift_weapons["weapon_9mmhandgun"] = true;
@@ -497,6 +511,12 @@ namespace AutoClassicMode {
 				subfolder = "bshift/";
 				weps = bshift_weapons;
 				force_replace = bshift_force_replace;
+				
+				g_Game.PrecacheModel("models/AutoClassicMode/bshift/v_satchel_radio.mdl");
+			}
+			if (mapType == MAP_OPPOSING_FORCE)
+			{
+				g_Game.PrecacheModel("models/AutoClassicMode/op4/v_satchel_radio.mdl");
 			}
 				
 			keys = weps.getKeys();
@@ -530,6 +550,7 @@ namespace AutoClassicMode {
 		PrecacheSound(replacementSoundPath + "sniper_fire.wav");
 		PrecacheSound(replacementSoundPath + "uzi_fire_both1.wav");
 		PrecacheSound(replacementSoundPath + "uzi_fire_both2.wav");
+		PrecacheSound("hlclassic/hgrunt/gr_mgun1.wav");
 	}
 	
 	void loadBlacklist()
@@ -613,34 +634,41 @@ namespace AutoClassicMode {
 				g_EntityFuncs.SetModel(mon, originalModel);
 				g_EntityFuncs.SetSize(mon.pev, mins, maxs);
 				mon.pev.body = oldBody;
+				
+				if (mapType == MAP_OPPOSING_FORCE)
+				{
+					// of1a5 scientist has broken neck without this. No idea what the proper way to fix this is,
+					// since it looks like the HL sci is missing controllers.
+					mon.pev.set_controller(0,mon.pev.get_controller(0));
+					mon.pev.set_controller(1,mon.pev.get_controller(0));
+					mon.pev.set_controller(2,mon.pev.get_controller(0));
+					mon.pev.set_controller(3,mon.pev.get_controller(0));
+				}
 			}
+		}
+		
+		// sound replacement
+		if (soundReplacements.exists(cname))
+		{
+			if (ShouldUpdateSoundlist(mon))
+			{
+				//println("Add soundlist to " + ent.pev.classname);
+				string soundlist;
+				soundReplacements.get(cname, soundlist);
+				mon.KeyValue("soundlist", soundlist);
+				mon.Precache(); // updates soundlist for some reason
+			}
+			else
+				println("Not updating monster soundlist because it already has one");
 		}
 		
 		if (should_force_replace or (modelReplacements.exists(model) and not blacklist.exists(model)))
 		{
 			//println("Le model replace " + cname);
-			
+			bool isDead = int(cname.Find("_dead")) != -1;
 			bool isGrunt = int(cname.Find("grunt")) != -1 and cname != "monster_alien_grunt";
 			bool isBarney = int(cname.Find("barney")) != -1;
-			// sound replacement
-			if (isGrunt or cname == "monster_male_assassin" or cname == "monster_assassin_repel" 
-				or cname == "monster_bodyguard" or isBarney)
-			{
-				if (ShouldUpdateSoundlist(mon))
-				{
-					//println("Add soundlist to " + ent.pev.classname);
-					string soundlist = "../AutoClassicMode/weapons.txt";
-					if (isBarney)
-						soundlist = "../AutoClassicMode/barney.txt";
-					mon.KeyValue("soundlist", soundlist);
-					mon.Precache(); // updates soundlist for some reason
-				}
-				else
-					println("Not updating monster soundlist because it already has one");
-			}
-			
-			bool isDead = int(cname.Find("_dead")) != -1;
-			
+		
 			string replacement;
 			if (should_force_replace)
 			{
