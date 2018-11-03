@@ -51,6 +51,8 @@ void PluginInit()
 	g_Module.ScriptInfo.SetAuthor( "w00tguy" );
 	g_Module.ScriptInfo.SetContactInfo( "w00tguy123 - forums.svencoop.com" );
 	
+	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @AutoClassicModeSay );
+	
 	classic_maps = loadMapList(maplist_path + "classic_maps.txt");
 	op4_maps = loadMapList(maplist_path + "op4_maps.txt");
 	bshift_maps = loadMapList(maplist_path + "bshift_maps.txt");
@@ -59,7 +61,7 @@ void PluginInit()
 
 void MapInit()
 {
-	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @AutoClassicModeSay );
+	
 	
 	// classic mode votes will only restart the map but not change anything. Might as well disable it.
 	g_EngineFuncs.ServerCommand("mp_voteclassicmoderequired -1;\n");
@@ -181,7 +183,7 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 						break;
 					case MODE_AUTO:
 					default:
-						msg += "AUTO - ";
+						msg += "AUTO. ";
 						if (isClassicMap)
 							msg += "This is a classic map.";
 						else
