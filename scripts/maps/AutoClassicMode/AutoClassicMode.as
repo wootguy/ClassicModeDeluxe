@@ -4,7 +4,7 @@
 
 // Impossible replacements:
 // Player uzi shoot sound
-// Player sniper shoot + reload sounds
+// Player sniper shoot sound
 // Monster sniper reload sound
 // Uzi/Saw bullet casings
 // footstep sounds
@@ -13,7 +13,6 @@
 // muzzle-flashes (minigun?)
 // disable full-auto for shotgun/mp5 on npcs
 // custom soundlists for the HL grunt are ignored
-// satchel models replaced with GMR AND classic mode prevents radio model from showing
 
 namespace AutoClassicMode {
 
@@ -548,6 +547,8 @@ namespace AutoClassicMode {
 		
 		// precache weapon sound replacements for monsters
 		PrecacheSound(replacementSoundPath + "sniper_fire.wav");
+		PrecacheSound(replacementSoundPath + "sniper_bolt1.wav");
+		PrecacheSound(replacementSoundPath + "sniper_reload_first_seq.wav");
 		PrecacheSound(replacementSoundPath + "uzi_fire_both1.wav");
 		PrecacheSound(replacementSoundPath + "uzi_fire_both2.wav");
 		PrecacheSound("hlclassic/hgrunt/gr_mgun1.wav");
