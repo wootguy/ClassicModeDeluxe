@@ -1,18 +1,17 @@
 // TODO:
 // replace sci model for ba_yard4
 // if any map has a custom satchel but not a custom satchel_radio then the MAP WILL CRASH
+// adjust skill settings?
 
 // Impossible replacements:
 // Player uzi shoot sound
 // Player sniper shoot sound
-// Monster sniper reload sound
-// Uzi/Saw bullet casings
 // footstep sounds
-// nerf armor
 // golden uzi third-person model
-// muzzle-flashes (minigun?)
-// disable full-auto for shotgun/mp5 on npcs
-// custom soundlists for the HL grunt are ignored
+// Uzi/Saw bullet casings (requires GMR)
+// muzzle-flashes (requires GMR)
+// disable full-auto for shotgun/mp5 on npcs (custom npcs are missing features and will probably break sequences/triggers)
+// custom soundlists for the HL grunt are ignored. AS can't get soundlist keyvalues to fix that.
 
 namespace AutoClassicMode {
 
@@ -101,7 +100,7 @@ namespace AutoClassicMode {
 		modelReplacements["models/torf.mdl"] = "models/AutoClassicMode/torf.mdl";
 		modelReplacements["models/hgrunt.mdl"] = "models/AutoClassicMode/hgrunt.mdl";
 		modelReplacements["models/hlclassic/barney.mdl"] = "models/hlclassic/barney.mdl";
-		modelReplacements["models/hlclassic/hgrunt.mdl"] = "models/hlclassic/hgrunt.mdl"; // the vanilla classic grunt is missing rpg anims
+		modelReplacements["models/hlclassic/hgrunt.mdl"] = "models/AutoClassicMode/hgrunt.mdl"; // the vanilla classic grunt is missing rpg anims
 		modelReplacements["models/hlclassic/hassassin.mdl"] = "models/hlclassic/hassassin.mdl";
 		modelReplacements["models/hlclassic/islave.mdl"] = "models/hlclassic/islave.mdl";
 		modelReplacements["models/hlclassic/agrunt.mdl"] = "models/hlclassic/agrunt.mdl";
@@ -953,18 +952,219 @@ namespace AutoClassicMode {
 		return HOOK_CONTINUE;
 	}
 	
+	int HalfLifeTakeDamage(CBasePlayer@ plr, entvars_t@ pevInflictor, entvars_t@ pevAttacker, float flDamage, int bitsDamageType)
+	{
+		const float ARMOR_RATIO = 0.2f; // Armor takes 80% of the damage
+		const float ARMOR_BONUS = 0.5f; // Each point of armer is worth 1/x points of health
+		const int SUIT_NEXT_IN_30SEC = 30;
+		const int SUIT_NEXT_IN_1MIN	= 60;
+		const int SUIT_NEXT_IN_5MIN	= 300;
+		const int SUIT_NEXT_IN_10MIN = 600;
+		const int SUIT_NEXT_IN_30MIN = 1800;
+
+		float flBonus = ARMOR_BONUS;
+		float flRatio = ARMOR_RATIO;
+		float flHealthPrev = plr.pev.health;
+		
+		if (bitsDamageType & DMG_BLAST != 0)
+			flBonus *= 2; // blasts damage armor more.
+		
+		if ( !plr.IsAlive() )
+			return 0;
+
+		// keep track of amount of damage last sustained
+		plr.m_lastDamageAmount = int(flDamage);
+		
+		// Armor. 
+		if (plr.pev.armorvalue != 0 && !(bitsDamageType & (DMG_FALL | DMG_DROWN) != 0) ) // armor doesn't protect against fall or drown damage!
+		{
+			float flNew = flDamage * flRatio;
+			float flArmor = (flDamage - flNew) * flBonus;
+
+			// Does this use more armor than we have?
+			if (flArmor > plr.pev.armorvalue)
+			{
+				flArmor = plr.pev.armorvalue;
+				flArmor *= (1.0f/flBonus);
+				flNew = flDamage - flArmor;
+				plr.pev.armorvalue = 0;
+			}
+			else
+				plr.pev.armorvalue -= flArmor;
+			
+			flDamage = flNew;
+		}
+		
+		// this cast to INT is critical!!! If a player ends up with 0.5 health, the engine will get that
+		// as an int (zero) and think the player is dead! (this will incite a clientside screentilt, etc)
+		float flTake = int(flDamage);
+		
+		if (pevInflictor !is null)
+			@plr.pev.dmg_inflictor = pevInflictor.get_pContainingEntity();
+
+		plr.pev.dmg_take += flTake;
+		
+		// do the damage
+		plr.pev.health -= flTake;
+		
+		if (plr.pev.health <= 0)
+		{
+			if (bitsDamageType & DMG_ALWAYSGIB != 0)
+				plr.Killed( pevAttacker, GIB_ALWAYS );
+			else if (bitsDamageType & DMG_NEVERGIB != 0)
+				plr.Killed( pevAttacker, GIB_NEVER );
+			else
+				plr.Killed( pevAttacker, GIB_NORMAL );
+			return 0;
+		}
+		
+		// play suit sounds
+		if (g_EngineFuncs.CVarGetFloat("mp_hevsuit_voice") != 0)
+		{
+			bool ftrivial = (plr.pev.health > 75 || plr.m_lastDamageAmount < 5);
+			bool fmajor = (plr.m_lastDamageAmount > 25);
+			bool fcritical = (plr.pev.health < 30);
+			bool ffound = true;
+			int bitsDamage = bitsDamageType;
+		
+			while ((!ftrivial || (bitsDamage & DMG_TIMEBASED != 0)) && ffound && bitsDamage != 0)
+			{
+				ffound = false;
+
+				if (bitsDamage & DMG_CLUB != 0)
+				{
+					if (fmajor)
+						plr.SetSuitUpdate("!HEV_DMG4", false, SUIT_NEXT_IN_30SEC);	// minor fracture
+					bitsDamage &= ~DMG_CLUB;
+					ffound = true;
+				}
+				if (bitsDamage & (DMG_FALL | DMG_CRUSH) != 0)
+				{
+					if (fmajor)
+						plr.SetSuitUpdate("!HEV_DMG5", false, SUIT_NEXT_IN_30SEC);	// major fracture
+					else
+						plr.SetSuitUpdate("!HEV_DMG4", false, SUIT_NEXT_IN_30SEC);	// minor fracture
+			
+					bitsDamage &= ~(DMG_FALL | DMG_CRUSH);
+					ffound = true;
+				}
+				if (bitsDamage & DMG_BULLET != 0)
+				{
+					if (plr.m_lastDamageAmount > 5)
+						plr.SetSuitUpdate("!HEV_DMG6", false, SUIT_NEXT_IN_30SEC);	// blood loss detected
+					//else
+					//	plr.SetSuitUpdate("!HEV_DMG0", false, SUIT_NEXT_IN_30SEC);	// minor laceration
+					
+					bitsDamage &= ~DMG_BULLET;
+					ffound = true;
+				}
+				if (bitsDamage & DMG_SLASH != 0)
+				{
+					if (fmajor)
+						plr.SetSuitUpdate("!HEV_DMG1", false, SUIT_NEXT_IN_30SEC);	// major laceration
+					else
+						plr.SetSuitUpdate("!HEV_DMG0", false, SUIT_NEXT_IN_30SEC);	// minor laceration
+
+					bitsDamage &= ~DMG_SLASH;
+					ffound = true;
+				}
+				if (bitsDamage & DMG_SONIC != 0)
+				{
+					if (fmajor)
+						plr.SetSuitUpdate("!HEV_DMG2", false, SUIT_NEXT_IN_1MIN);	// internal bleeding
+					bitsDamage &= ~DMG_SONIC;
+					ffound = true;
+				}
+				if (bitsDamage & (DMG_POISON | DMG_PARALYZE) != 0)
+				{
+					plr.SetSuitUpdate("!HEV_DMG3", false, SUIT_NEXT_IN_1MIN);	// blood toxins detected
+					bitsDamage &= ~(DMG_POISON | DMG_PARALYZE);
+					ffound = true;
+				}
+				if (bitsDamage & DMG_ACID != 0)
+				{
+					plr.SetSuitUpdate("!HEV_DET1", false, SUIT_NEXT_IN_1MIN);	// hazardous chemicals detected
+					bitsDamage &= ~DMG_ACID;
+					ffound = true;
+				}
+				if (bitsDamage & DMG_NERVEGAS != 0)
+				{
+					plr.SetSuitUpdate("!HEV_DET0", false, SUIT_NEXT_IN_1MIN);	// biohazard detected
+					bitsDamage &= ~DMG_NERVEGAS;
+					ffound = true;
+				}
+				if (bitsDamage & DMG_RADIATION != 0)
+				{
+					plr.SetSuitUpdate("!HEV_DET2", false, SUIT_NEXT_IN_1MIN);	// radiation detected
+					bitsDamage &= ~DMG_RADIATION;
+					ffound = true;
+				}
+				if (bitsDamage & DMG_SHOCK != 0)
+				{
+					bitsDamage &= ~DMG_SHOCK;
+					ffound = true;
+				}
+			}
+
+			if (!ftrivial && fmajor && flHealthPrev >= 75) 
+			{
+				// first time we take major damage...
+				// turn automedic on if not on
+				plr.SetSuitUpdate("!HEV_MED1", false, SUIT_NEXT_IN_30MIN);	// automedic on
+
+				// give morphine shot if not given recently
+				plr.SetSuitUpdate("!HEV_HEAL7", false, SUIT_NEXT_IN_30MIN);	// morphine shot
+			}
+			
+			if (!ftrivial && fcritical && flHealthPrev < 75)
+			{
+
+				// already took major damage, now it's critical...
+				if (plr.pev.health < 6)
+					plr.SetSuitUpdate("!HEV_HLTH3", false, SUIT_NEXT_IN_10MIN);	// near death
+				else if (plr.pev.health < 20)
+					plr.SetSuitUpdate("!HEV_HLTH2", false, SUIT_NEXT_IN_10MIN);	// health critical
+			
+				// give critical health warnings
+				if (Math.RandomLong(0,3) == 0 && flHealthPrev < 50)
+					plr.SetSuitUpdate("!HEV_DMG7", false, SUIT_NEXT_IN_5MIN); //seek medical attention
+			}
+
+			// if we're taking time based damage, warn about its continuing effects
+			if ((bitsDamageType & DMG_TIMEBASED != 0) && flHealthPrev < 75)
+			{
+				if (flHealthPrev < 50)
+				{
+					if (Math.RandomLong(0,3) == 0)
+						plr.SetSuitUpdate("!HEV_DMG7", false, SUIT_NEXT_IN_5MIN); //seek medical attention
+				}
+				else
+					plr.SetSuitUpdate("!HEV_HLTH1", false, SUIT_NEXT_IN_10MIN);	// health dropping
+			}
+		}
+
+		return 1;
+	}
+	
+	HookReturnCode PlayerTakeDamage(DamageInfo@ info)
+	{
+		CBasePlayer@ plr = cast<CBasePlayer@>(g_EntityFuncs.Instance(info.pVictim.pev));
+		HalfLifeTakeDamage(plr, info.pAttacker.pev, info.pInflictor.pev, info.flDamage, info.bitsDamageType);
+		info.flDamage = 0; // bypass sven's TakeDamage
+		return HOOK_CONTINUE;
+	}
+	
 	void MapInit(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
 	{
-		g_Hooks.RegisterHook( Hooks::Game::EntityCreated, @EntityCreated );
-		
 		int mapInfo = caller.pev.rendermode;
 		isClassicMap = mapInfo & 1 != 0;
 		mapType = mapInfo >> 1;
 		
-		println("MAP SETTINGS " + isClassicMap + " " + mapType);
-		
 		if (isClassicMap)
 		{
+			g_Hooks.RegisterHook( Hooks::Game::EntityCreated, @EntityCreated );
+			g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @PlayerTakeDamage );
+			
 			g_ClassicMode.EnableMapSupport();
 			g_ClassicMode.SetShouldRestartOnChange(false);	
 		
