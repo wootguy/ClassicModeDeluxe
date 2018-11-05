@@ -315,7 +315,7 @@ namespace ClassicModeDeluxe {
 			return;
 			
 		if (wep.pev.classname == "weapon_9mmAR")
-			wep.KeyValue("CustomSpriteDir", "ClassicModeDeluxe");
+			wep.KeyValue("CustomSpriteDir", "dxclassic");
 			
 		//println("Checking " + wep.pev.classname);
 		
