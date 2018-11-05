@@ -1,17 +1,20 @@
 // TODO:
 // replace sci model for ba_yard4
-// if any map has a custom satchel but not a custom satchel_radio then the MAP WILL CRASH
-// adjust skill settings?
+// if any map has a custom satchel but not a custom satchel_radio then the MAP WILL CRASH (mb game does this anyway?)
+// revert to old barnacle behavior
+// have explanations for 4.x maps that are in the classic list
+// settings to toggle skill/speed/model/sound updates
 
 // Impossible replacements:
 // Player uzi shoot sound
 // Player sniper shoot sound
 // footstep sounds
+// muzzle-flashes (requires GMR - not available in scripts)
+// Uzi/Saw bullet casings (requires GMR - not available in scripts)
 // golden uzi third-person model
-// Uzi/Saw bullet casings (requires GMR)
-// muzzle-flashes (requires GMR)
 // disable full-auto for shotgun/mp5 on npcs (custom npcs are missing features and will probably break sequences/triggers)
 // custom soundlists for the HL grunt are ignored. AS can't get soundlist keyvalues to fix that.
+// custom weapons can fix some issues/sounds but are laggy which is worse
 
 #include "ReplacementLists"
 
@@ -30,6 +33,9 @@ namespace AutoClassicMode {
 	int mapType = MAP_HALF_LIFE;
 	bool mapUsesGMR = true;
 	
+	const float DEFAULT_MAX_SPEED_SVEN = 270;
+	const float DEFAULT_MAX_SPEED_HL = 320;
+	
 	dictionary classicItems; // weapons that the built-in classic mode replaces. Value is the model name.
 	dictionary defaultWeaponModels; // weapon models for the default weapons
 	dictionary modelReplacements;
@@ -46,6 +52,7 @@ namespace AutoClassicMode {
 	// force model replacements for these
 	dictionary force_replace;
 	dictionary bshift_force_replace;
+	dictionary op4_force_replace;
 	
 	string replacementModelPath = "models/AutoClassicMode/";
 	string replacementSpritePath = "sprites/AutoClassicMode/";
@@ -69,6 +76,10 @@ namespace AutoClassicMode {
 		int mapInfo = caller.pev.rendermode;
 		isClassicMap = mapInfo & 1 != 0;
 		mapType = mapInfo >> 1;
+		
+		float sv_maxspeed = g_EngineFuncs.CVarGetFloat("sv_maxspeed");
+		if (sv_maxspeed == DEFAULT_MAX_SPEED_SVEN)
+			g_EngineFuncs.CVarSetFloat("sv_maxspeed", DEFAULT_MAX_SPEED_HL);
 		
 		if (isClassicMap)
 		{
@@ -166,7 +177,7 @@ namespace AutoClassicMode {
 				
 				if (mapType == MAP_OPPOSING_FORCE)
 				{
-					// of1a5 scientist has broken neck without this. No idea what the proper way to fix this is,
+					// of1a6 scientist has broken neck without this. No idea what the proper way to fix this is,
 					// since it looks like the HL sci is missing controllers.
 					mon.pev.set_controller(0,mon.pev.get_controller(0));
 					mon.pev.set_controller(1,mon.pev.get_controller(0));
@@ -303,6 +314,9 @@ namespace AutoClassicMode {
 		CBasePlayerWeapon@ wep = cast<CBasePlayerWeapon@>(h_wep.GetEntity());
 		if (wep is null)
 			return;
+			
+		if (wep.pev.classname == "weapon_9mmAR")
+			wep.KeyValue("CustomSpriteDir", "AutoClassicMode");
 			
 		//println("Checking " + wep.pev.classname);
 		

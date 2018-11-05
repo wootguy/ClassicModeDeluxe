@@ -311,6 +311,9 @@ namespace AutoClassicMode {
 		bshift_weapons["weapon_tripmine"] = true;
 		bshift_weapons["weapon_snark"] = true;
 		
+		// sven's opfor zombie has a broken head hitbox
+		op4_force_replace["models/opfor/zombie_soldier.mdl"] = replacementModelPath + "zombie_soldier.mdl";
+		
 		bshift_force_replace["models/hlclassic/scientist.mdl"] = replacementModelPath + "bshift/scientist.mdl";
 		bshift_force_replace["models/bshift/scientist.mdl"] = replacementModelPath + "bshift/scientist.mdl";
 		bshift_force_replace["models/hlclassic/barney.mdl"] = replacementModelPath + "bshift/barney.mdl";
@@ -471,7 +474,7 @@ namespace AutoClassicMode {
 		if (mapType != MAP_HALF_LIFE)
 		{
 			dictionary weps = op4_weapons;
-			string subfolder = "op4/";
+			string subfolder;
 			if (mapType == MAP_BLUE_SHIFT)
 			{
 				subfolder = "bshift/";
@@ -482,6 +485,8 @@ namespace AutoClassicMode {
 			}
 			if (mapType == MAP_OPPOSING_FORCE)
 			{
+				subfolder = "op4/";
+				force_replace = op4_force_replace;
 				g_Game.PrecacheModel("models/AutoClassicMode/op4/v_satchel_radio.mdl");
 			}
 				
