@@ -29,7 +29,7 @@ bool g_basic_mode = false;
 const float DEFAULT_MAX_SPEED_SVEN = 270;
 const float DEFAULT_MAX_SPEED_HL = 320;
 
-string plugin_path = "scripts/plugins/AutoClassicMode/";
+string plugin_path = "scripts/plugins/ClassicModeDeluxe/";
 
 // load default skill settings so this plugin doesn't override any custom map skill settings
 dictionary default_skill_settings;
@@ -41,7 +41,7 @@ dictionary loadMapList(string fpath)
 	File@ f = g_FileSystem.OpenFile( fpath, OpenFile::READ );
 	if (f is null or !f.IsOpen())
 	{
-		println("AutoClassicMode: Failed to open " + fpath);
+		println("ClassicModeDeluxe: Failed to open " + fpath);
 		return maps;
 	}
 	
@@ -57,7 +57,7 @@ dictionary loadMapList(string fpath)
 		maps[line] = true;
 		mapCount++;
 	}
-	println("AutoClassicMode: Loaded " + mapCount + " maps from " + fpath);
+	println("ClassicModeDeluxe: Loaded " + mapCount + " maps from " + fpath);
 	return maps;
 }
 
@@ -67,7 +67,7 @@ dictionary loadSkillSettings(string fpath)
 	File@ f = g_FileSystem.OpenFile( fpath, OpenFile::READ );
 	if (f is null or !f.IsOpen())
 	{
-		println("AutoClassicMode: Failed to open " + fpath);
+		println("ClassicModeDeluxe: Failed to open " + fpath);
 		return settings;
 	}
 	
@@ -120,7 +120,7 @@ void PluginInit()
 	g_Module.ScriptInfo.SetAuthor( "w00tguy" );
 	g_Module.ScriptInfo.SetContactInfo( "w00tguy123 - forums.svencoop.com" );
 	
-	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @AutoClassicModeSay );
+	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @ClassicModeDeluxeSay );
 	
 	@cvar_mode = CCVar("mode", -1, "0 = off, 1 = on, -1 = auto", ConCommandFlag::AdminOnly);
 	@cvar_fastmove = CCVar("fastmove", 1, "1 = enable Half-Life movement speed (320)", ConCommandFlag::AdminOnly);
@@ -130,7 +130,7 @@ void PluginInit()
 	classic_maps = loadMapList(plugin_path + "classic_maps.txt");
 	op4_maps = loadMapList(plugin_path + "op4_maps.txt");
 	bshift_maps = loadMapList(plugin_path + "bshift_maps.txt");
-	println("AutoClassicMode: Map lists loaded");
+	println("ClassicModeDeluxe: Map lists loaded");
 }
 
 void MapInit()
@@ -171,26 +171,26 @@ void MapInit()
 	}
 	
 	dictionary keys;
-	keys["targetname"] = "AutoClassicModeTrigger";
-	keys["m_iszScriptFile"] = "AutoClassicMode";
-	keys["m_iszScriptFunctionName"] = "AutoClassicMode::MapInit";
+	keys["targetname"] = "ClassicModeDeluxeTrigger";
+	keys["m_iszScriptFile"] = "ClassicModeDeluxe";
+	keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::MapInit";
 	keys["m_iMode"] = "1";
 	CBaseEntity@ classicTrigger = g_EntityFuncs.CreateEntity("trigger_script", keys, true);
 	int mapInfo = (isClassicMap ? 1 : 0) + (mapType << 1);
 	classicTrigger.pev.rendermode = mapInfo;
 	
 	classicTrigger.Think();
-	g_EntityFuncs.FireTargets("AutoClassicModeTrigger", classicTrigger, classicTrigger, USE_ON, 0.0f);
+	g_EntityFuncs.FireTargets("ClassicModeDeluxeTrigger", classicTrigger, classicTrigger, USE_ON, 0.0f);
 	g_EntityFuncs.Remove(classicTrigger);
 	
 	if (isClassicMap and !g_basic_mode)
 	{
 		keys["targetname"] = "game_playerspawn";
-		keys["m_iszScriptFunctionName"] = "AutoClassicMode::PlayerSpawn";
+		keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::PlayerSpawn";
 		g_EntityFuncs.CreateEntity("trigger_script", keys, true);
 		
 		keys["targetname"] = "game_playerdie";
-		keys["m_iszScriptFunctionName"] = "AutoClassicMode::PlayerDie";
+		keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::PlayerDie";
 		g_EntityFuncs.CreateEntity("trigger_script", keys, true);
 	}
 }
@@ -200,14 +200,14 @@ void MapActivate()
 	if (isClassicMap and !g_basic_mode)
 	{
 		dictionary keys;
-		keys["targetname"] = "AutoClassicModeTrigger";
-		keys["m_iszScriptFile"] = "AutoClassicMode";
-		keys["m_iszScriptFunctionName"] = "AutoClassicMode::MapActivate";
+		keys["targetname"] = "ClassicModeDeluxeTrigger";
+		keys["m_iszScriptFile"] = "ClassicModeDeluxe";
+		keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::MapActivate";
 		keys["m_iMode"] = "1";
 		CBaseEntity@ classicTrigger = g_EntityFuncs.CreateEntity("trigger_script", keys, true);
 		
 		classicTrigger.Think();
-		g_EntityFuncs.FireTargets("AutoClassicModeTrigger", classicTrigger, classicTrigger, USE_ON, 0.0f);
+		g_EntityFuncs.FireTargets("ClassicModeDeluxeTrigger", classicTrigger, classicTrigger, USE_ON, 0.0f);
 		g_EntityFuncs.Remove(classicTrigger);
 	}
 }
@@ -294,7 +294,7 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 	return false;
 }
 
-HookReturnCode AutoClassicModeSay( SayParameters@ pParams )
+HookReturnCode ClassicModeDeluxeSay( SayParameters@ pParams )
 {
 	CBasePlayer@ plr = pParams.GetPlayer();
 	const CCommand@ args = pParams.GetArguments();	
