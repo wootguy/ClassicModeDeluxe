@@ -8,6 +8,9 @@ enum map_types {
 void print(string text) { g_Game.AlertMessage( at_console, text); }
 void println(string text) { print(text + "\n"); }
 
+CCVar@ cvar_mode;
+CCVar@ cvar_fastmove;
+
 dictionary classic_maps;
 dictionary op4_maps;
 dictionary bshift_maps;
@@ -21,8 +24,10 @@ enum MODES {
 	MODE_ALWAYS_ON = 1
 }
 
-int g_force_mode = MODE_ALWAYS_ON;
 bool g_basic_mode = false;
+
+const float DEFAULT_MAX_SPEED_SVEN = 270;
+const float DEFAULT_MAX_SPEED_HL = 320;
 
 string plugin_path = "scripts/plugins/AutoClassicMode/";
 
@@ -40,12 +45,19 @@ dictionary loadMapList(string fpath)
 		return maps;
 	}
 	
+	int mapCount = 0;
 	string line;
 	while( !f.EOFReached() )
 	{
 		f.ReadLine(line);
+		line.Trim();
+		line.Trim("\t");
+		if (line.Length() == 0 or line.Find("//") == 0)
+			continue;
 		maps[line] = true;
+		mapCount++;
 	}
+	println("AutoClassicMode: Loaded " + mapCount + " maps from " + fpath);
 	return maps;
 }
 
@@ -110,6 +122,9 @@ void PluginInit()
 	
 	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @AutoClassicModeSay );
 	
+	@cvar_mode = CCVar("mode", -1, "0 = off, 1 = on, -1 = auto", ConCommandFlag::AdminOnly);
+	@cvar_fastmove = CCVar("fastmove", 1, "1 = enable Half-Life movement speed (320)", ConCommandFlag::AdminOnly);
+	
 	default_skill_settings = loadSkillSettings(plugin_path + "skill.cfg");
 	classic_skill_settings = loadSkillSettings(plugin_path + "skill_classic.cfg");
 	classic_maps = loadMapList(plugin_path + "classic_maps.txt");
@@ -135,9 +150,9 @@ void MapInit()
 			mapType = MAP_BLUE_SHIFT;
 	}
 		
-	if (g_force_mode == MODE_ALWAYS_ON)
+	if (cvar_mode.GetInt() == MODE_ALWAYS_ON)
 		isClassicMap = true;
-	else if (g_force_mode == MODE_ALWAYS_OFF)
+	else if (cvar_mode.GetInt() == MODE_ALWAYS_OFF)
 		isClassicMap = false;
 	
 	println("IS CLASSIC MAP PLUGIN? " + isClassicMap); 
@@ -149,6 +164,10 @@ void MapInit()
 		g_EngineFuncs.ServerExecute();
 		
 		execClassicSkillSettings();
+		
+		float sv_maxspeed = g_EngineFuncs.CVarGetFloat("sv_maxspeed");
+		if (cvar_fastmove.GetInt() != 0 and sv_maxspeed == DEFAULT_MAX_SPEED_SVEN)
+			g_EngineFuncs.CVarSetFloat("sv_maxspeed", DEFAULT_MAX_SPEED_HL);
 	}
 	
 	dictionary keys;
@@ -203,36 +222,54 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 		{
 			if (args.ArgC() > 1)
 			{
-				if (args[1] == "1" or args[1] == "on")
+				string arg = args[1].ToLowercase();
+				if (arg == "version")
 				{
-					if (g_force_mode != MODE_ALWAYS_ON)
-						g_PlayerFuncs.SayTextAll(plr, "Classic mode is now ON\n");
+					g_PlayerFuncs.SayText(plr, "Classic mode version: v1\n");
+					return true;
+				}
+				if (g_PlayerFuncs.AdminLevel(plr) < ADMIN_YES)
+				{
+					g_PlayerFuncs.SayText(plr, "Only admins can change classic mode settings\n");
+					return true;
+				}
+				if (arg == "1" or arg == "on")
+				{
+					if (cvar_mode.GetInt() != MODE_ALWAYS_ON)
+						g_PlayerFuncs.SayTextAll(plr, "Classic mode is now ON. All future maps will have classic mode enabled.\n");
 					else
 						g_PlayerFuncs.SayText(plr, "Classic mode is already set to ON\n");
-					g_force_mode = MODE_ALWAYS_ON;
+					cvar_mode.SetInt(MODE_ALWAYS_ON);
 				}
-				else if (args[1] == "0" or args[1] == "off")
+				else if (arg == "0" or arg == "off")
 				{
-					if (g_force_mode != MODE_ALWAYS_OFF)
-						g_PlayerFuncs.SayTextAll(plr, "Classic mode is now OFF\n");
+					if (cvar_mode.GetInt() != MODE_ALWAYS_OFF)
+						g_PlayerFuncs.SayTextAll(plr, "Classic mode is now OFF. All future maps will have classic mode disabled.\n");
 					else
 						g_PlayerFuncs.SayText(plr, "Classic mode is already set to OFF\n");
-					g_force_mode = MODE_ALWAYS_OFF;
+					cvar_mode.SetInt(MODE_ALWAYS_OFF);
 				}
-				else if (args[1] == "2" or args[1] == "auto")
+				else if (arg == "2" or arg == "auto")
 				{
-					if (g_force_mode != MODE_AUTO)
-						g_PlayerFuncs.SayTextAll(plr, "Classic mode is now AUTO.\n");
+					if (cvar_mode.GetInt() != MODE_AUTO)
+						g_PlayerFuncs.SayTextAll(plr, "Classic mode is now AUTO. Only classic maps will have classic mode enabled.\n");
 					else
 						g_PlayerFuncs.SayText(plr, "Classic mode is already set to AUTO\n");
-					g_force_mode = MODE_AUTO;
+					cvar_mode.SetInt(MODE_AUTO);
+				}
+				else
+				{
+					g_PlayerFuncs.SayText(plr, "Classic mode usage:\n"); 
+					g_PlayerFuncs.SayText(plr, ".cm = show current mode\n");
+					g_PlayerFuncs.SayText(plr, ".cm [ON/OFF/AUTO] = set classic mode behavior\n"); 
+					g_PlayerFuncs.SayText(plr, ".cm version = show plugin version\n");
 				}
 				return true;
 			}
 			else
 			{
 				string msg = "Classic mode is ";
-				switch(g_force_mode)
+				switch(cvar_mode.GetInt())
 				{
 					case MODE_ALWAYS_OFF:
 						msg += "OFF";
@@ -252,7 +289,6 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 				g_PlayerFuncs.SayText(plr, msg + "\n");
 				return true;
 			}
-			
 		}
 	}
 	return false;
