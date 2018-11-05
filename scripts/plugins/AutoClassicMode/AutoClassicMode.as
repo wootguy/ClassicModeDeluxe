@@ -24,26 +24,83 @@ enum MODES {
 int g_force_mode = MODE_ALWAYS_ON;
 bool g_basic_mode = false;
 
-string maplist_path = "scripts/plugins/AutoClassicMode/";
+string plugin_path = "scripts/plugins/AutoClassicMode/";
+
+// load default skill settings so this plugin doesn't override any custom map skill settings
+dictionary default_skill_settings;
+dictionary classic_skill_settings;
 
 dictionary loadMapList(string fpath)
 {
 	dictionary maps;
 	File@ f = g_FileSystem.OpenFile( fpath, OpenFile::READ );
-	if(f is null or !f.IsOpen())
+	if (f is null or !f.IsOpen())
 	{
 		println("AutoClassicMode: Failed to open " + fpath);
 		return maps;
 	}
 	
-	int linesRead = 0;
 	string line;
 	while( !f.EOFReached() )
 	{
-		f.ReadLine(line);		
+		f.ReadLine(line);
 		maps[line] = true;
 	}
 	return maps;
+}
+
+dictionary loadSkillSettings(string fpath)
+{
+	dictionary settings;
+	File@ f = g_FileSystem.OpenFile( fpath, OpenFile::READ );
+	if (f is null or !f.IsOpen())
+	{
+		println("AutoClassicMode: Failed to open " + fpath);
+		return settings;
+	}
+	
+	string line;
+	while( !f.EOFReached() )
+	{
+		f.ReadLine(line);
+		line.Trim();
+		if (line.Length() == 0 or line.Find("sk_") != 0)
+			continue;
+			
+		array<string> parts = line.Split("\"");
+		if (parts.size() < 2)
+			continue;
+			
+		string skill = parts[0];
+		string value = parts[1];
+		skill.Trim();
+		value.Trim();
+		skill.Trim("\t");
+		value.Trim("\t");
+			
+		settings[skill] = atof(value);
+	}
+	return settings;
+}
+
+void execClassicSkillSettings()
+{	
+	array<string> keys = classic_skill_settings.getKeys();
+	for (uint i = 0; i < keys.size(); i++)
+	{
+		float classicValue = -1;
+		float defaultValue = -1;
+		float currentValue = g_EngineFuncs.CVarGetFloat(keys[i]);
+		default_skill_settings.get(keys[i], defaultValue);
+		classic_skill_settings.get(keys[i], classicValue);
+		if (!default_skill_settings.exists(keys[i]))
+			println("Missing default skill value for " + keys[i]);
+		
+		if (currentValue == defaultValue) {
+			g_EngineFuncs.ServerCommand(keys[i] + " " + classicValue + ";");
+		}
+	}
+	g_EngineFuncs.ServerExecute();
 }
 
 void PluginInit()
@@ -53,20 +110,20 @@ void PluginInit()
 	
 	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @AutoClassicModeSay );
 	
-	classic_maps = loadMapList(maplist_path + "classic_maps.txt");
-	op4_maps = loadMapList(maplist_path + "op4_maps.txt");
-	bshift_maps = loadMapList(maplist_path + "bshift_maps.txt");
+	default_skill_settings = loadSkillSettings(plugin_path + "skill.cfg");
+	classic_skill_settings = loadSkillSettings(plugin_path + "skill_classic.cfg");
+	classic_maps = loadMapList(plugin_path + "classic_maps.txt");
+	op4_maps = loadMapList(plugin_path + "op4_maps.txt");
+	bshift_maps = loadMapList(plugin_path + "bshift_maps.txt");
 	println("AutoClassicMode: Map lists loaded");
 }
 
 void MapInit()
 {
-	
-	
 	// classic mode votes will only restart the map but not change anything. Might as well disable it.
 	g_EngineFuncs.ServerCommand("mp_voteclassicmoderequired -1;\n");
 	g_EngineFuncs.ServerExecute();
-	
+
 	isClassicMap = classic_maps.exists(g_Engine.mapname);
 	
 	mapType = MAP_HALF_LIFE;
@@ -90,6 +147,8 @@ void MapInit()
 		// weaponmode_mp5 breaks the GL if enabled
 		g_EngineFuncs.ServerCommand("weaponmode_mp5 0;\n");
 		g_EngineFuncs.ServerExecute();
+		
+		execClassicSkillSettings();
 	}
 	
 	dictionary keys;
