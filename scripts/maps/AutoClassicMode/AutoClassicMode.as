@@ -1,9 +1,14 @@
 // TODO:
+// rename to dxclassic (don't forget model sounds)
+// 1719/2274 are classic (75%)
+
+// TODO later:
 // replace sci model for ba_yard4
 // if any map has a custom satchel but not a custom satchel_radio then the MAP WILL CRASH (mb game does this anyway?)
 // revert to old barnacle behavior
-// have explanations for 4.x maps that are in the classic list
-// settings to toggle skill/speed/model/sound updates
+// add voting
+// LD models for custom maps that were made for 4.x and later (from LD Pack)
+// allow mappers to copy-paste a gmr file into "gmr" without editing it
 
 // Impossible replacements:
 // Player uzi shoot sound
@@ -32,9 +37,6 @@ namespace AutoClassicMode {
 	bool isClassicMap = false;
 	int mapType = MAP_HALF_LIFE;
 	bool mapUsesGMR = true;
-	
-	const float DEFAULT_MAX_SPEED_SVEN = 270;
-	const float DEFAULT_MAX_SPEED_HL = 320;
 	
 	dictionary classicItems; // weapons that the built-in classic mode replaces. Value is the model name.
 	dictionary defaultWeaponModels; // weapon models for the default weapons
@@ -76,10 +78,6 @@ namespace AutoClassicMode {
 		int mapInfo = caller.pev.rendermode;
 		isClassicMap = mapInfo & 1 != 0;
 		mapType = mapInfo >> 1;
-		
-		float sv_maxspeed = g_EngineFuncs.CVarGetFloat("sv_maxspeed");
-		if (sv_maxspeed == DEFAULT_MAX_SPEED_SVEN)
-			g_EngineFuncs.CVarSetFloat("sv_maxspeed", DEFAULT_MAX_SPEED_HL);
 		
 		if (isClassicMap)
 		{
