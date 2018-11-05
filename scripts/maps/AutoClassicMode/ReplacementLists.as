@@ -1,5 +1,5 @@
 
-namespace AutoClassicMode {
+namespace ClassicModeDeluxe {
 
 	void PrecacheSound(string snd)
 	{
@@ -9,11 +9,11 @@ namespace AutoClassicMode {
 
 	void loadBlacklist()
 	{
-		string fpath = "scripts/maps/AutoClassicMode/gmr/" + string(g_Engine.mapname).ToLowercase() + ".txt";
+		string fpath = "scripts/maps/ClassicModeDeluxe/gmr/" + string(g_Engine.mapname).ToLowercase() + ".txt";
 		File@ f = g_FileSystem.OpenFile( fpath, OpenFile::READ );
 		if( f is null or !f.IsOpen())
 		{
-			println("AutoClassicMode: Model blacklist not found: " + fpath);
+			println("ClassicModeDeluxe: Model blacklist not found: " + fpath);
 			return;
 		}
 
@@ -27,92 +27,92 @@ namespace AutoClassicMode {
 		}
 		
 		mapUsesGMR = true;
-		println("AutoClassicMode: Loaded model replacement blacklist");
+		println("ClassicModeDeluxe: Loaded model replacement blacklist");
 	}
 
 	void initReplacements()
 	{
-		modelReplacements["models/otis.mdl"] = "models/AutoClassicMode/otis.mdl";
-		modelReplacements["models/otisf.mdl"] = "models/AutoClassicMode/otisf.mdl";
-		modelReplacements["models/zombie_barney.mdl"] = "models/AutoClassicMode/zombie_barney.mdl";
-		modelReplacements["models/zombie_soldier.mdl"] = "models/AutoClassicMode/zombie_soldier.mdl";
-		modelReplacements["models/hgrunt_medic.mdl"] = "models/AutoClassicMode/hgrunt_medic.mdl";
-		modelReplacements["models/hgrunt_medicf.mdl"] = "models/AutoClassicMode/hgrunt_medicf.mdl";
-		modelReplacements["models/hgrunt_opfor.mdl"] = "models/AutoClassicMode/hgrunt_opfor.mdl";
-		modelReplacements["models/hgrunt_opforf.mdl"] = "models/AutoClassicMode/hgrunt_opforf.mdl";
-		modelReplacements["models/hgrunt_torch.mdl"] = "models/AutoClassicMode/hgrunt_torch.mdl";
-		modelReplacements["models/hgrunt_torchf.mdl"] = "models/AutoClassicMode/hgrunt_torchf.mdl";
-		modelReplacements["models/massn.mdl"] = "models/AutoClassicMode/massn.mdl";
-		modelReplacements["models/massnf.mdl"] = "models/AutoClassicMode/massnf.mdl";
-		modelReplacements["models/rgrunt.mdl"] = "models/AutoClassicMode/rgrunt.mdl";
-		modelReplacements["models/rgruntf.mdl"] = "models/AutoClassicMode/rgruntf.mdl";
-		modelReplacements["models/hwgrunt.mdl"] = "models/AutoClassicMode/hwgrunt.mdl";
-		modelReplacements["models/hwgruntf.mdl"] = "models/AutoClassicMode/hwgruntf.mdl";
-		modelReplacements["models/osprey.mdl"] = "models/AutoClassicMode/osprey.mdl";
-		modelReplacements["models/osprey2.mdl"] = "models/AutoClassicMode/osprey2.mdl";
-		modelReplacements["models/ospreyf.mdl"] = "models/AutoClassicMode/ospreyf.mdl";
-		modelReplacements["models/blkop_apache.mdl"] = "models/AutoClassicMode/blkop_apache.mdl";
-		modelReplacements["models/blkop_osprey.mdl"] = "models/AutoClassicMode/blkop_osprey.mdl";
-		modelReplacements["models/apachef.mdl"] = "models/AutoClassicMode/apachef.mdl";
-		modelReplacements["models/agruntf.mdl"] = "models/AutoClassicMode/agruntf.mdl";
-		modelReplacements["models/strooper.mdl"] = "models/AutoClassicMode/strooper.mdl";
-		modelReplacements["models/bgman.mdl"] = "models/AutoClassicMode/bgman.mdl";
-		modelReplacements["models/w_shock_rifle.mdl"] = "models/AutoClassicMode/w_shock_rifle.mdl";
-		modelReplacements["models/barnabus.mdl"] = "models/AutoClassicMode/barnabus.mdl";
-		modelReplacements["models/hassassinf.mdl"] = "models/AutoClassicMode/hassassinf.mdl";
-		modelReplacements["models/hgruntf.mdl"] = "models/AutoClassicMode/hgruntf.mdl";
-		modelReplacements["models/islavef.mdl"] = "models/AutoClassicMode/islavef.mdl";
-		modelReplacements["models/player.mdl"] = "models/AutoClassicMode/player.mdl";
-		modelReplacements["models/gonome.mdl"] = "models/AutoClassicMode/gonome.mdl";
-		modelReplacements["models/tor.mdl"] = "models/AutoClassicMode/tor.mdl";
-		modelReplacements["models/torf.mdl"] = "models/AutoClassicMode/torf.mdl";
-		modelReplacements["models/hgrunt.mdl"] = "models/AutoClassicMode/hgrunt.mdl";
+		modelReplacements["models/otis.mdl"] = "models/dxclassic/otis.mdl";
+		modelReplacements["models/otisf.mdl"] = "models/dxclassic/otisf.mdl";
+		modelReplacements["models/zombie_barney.mdl"] = "models/dxclassic/zombie_barney.mdl";
+		modelReplacements["models/zombie_soldier.mdl"] = "models/dxclassic/zombie_soldier.mdl";
+		modelReplacements["models/hgrunt_medic.mdl"] = "models/dxclassic/hgrunt_medic.mdl";
+		modelReplacements["models/hgrunt_medicf.mdl"] = "models/dxclassic/hgrunt_medicf.mdl";
+		modelReplacements["models/hgrunt_opfor.mdl"] = "models/dxclassic/hgrunt_opfor.mdl";
+		modelReplacements["models/hgrunt_opforf.mdl"] = "models/dxclassic/hgrunt_opforf.mdl";
+		modelReplacements["models/hgrunt_torch.mdl"] = "models/dxclassic/hgrunt_torch.mdl";
+		modelReplacements["models/hgrunt_torchf.mdl"] = "models/dxclassic/hgrunt_torchf.mdl";
+		modelReplacements["models/massn.mdl"] = "models/dxclassic/massn.mdl";
+		modelReplacements["models/massnf.mdl"] = "models/dxclassic/massnf.mdl";
+		modelReplacements["models/rgrunt.mdl"] = "models/dxclassic/rgrunt.mdl";
+		modelReplacements["models/rgruntf.mdl"] = "models/dxclassic/rgruntf.mdl";
+		modelReplacements["models/hwgrunt.mdl"] = "models/dxclassic/hwgrunt.mdl";
+		modelReplacements["models/hwgruntf.mdl"] = "models/dxclassic/hwgruntf.mdl";
+		modelReplacements["models/osprey.mdl"] = "models/dxclassic/osprey.mdl";
+		modelReplacements["models/osprey2.mdl"] = "models/dxclassic/osprey2.mdl";
+		modelReplacements["models/ospreyf.mdl"] = "models/dxclassic/ospreyf.mdl";
+		modelReplacements["models/blkop_apache.mdl"] = "models/dxclassic/blkop_apache.mdl";
+		modelReplacements["models/blkop_osprey.mdl"] = "models/dxclassic/blkop_osprey.mdl";
+		modelReplacements["models/apachef.mdl"] = "models/dxclassic/apachef.mdl";
+		modelReplacements["models/agruntf.mdl"] = "models/dxclassic/agruntf.mdl";
+		modelReplacements["models/strooper.mdl"] = "models/dxclassic/strooper.mdl";
+		modelReplacements["models/bgman.mdl"] = "models/dxclassic/bgman.mdl";
+		modelReplacements["models/w_shock_rifle.mdl"] = "models/dxclassic/w_shock_rifle.mdl";
+		modelReplacements["models/barnabus.mdl"] = "models/dxclassic/barnabus.mdl";
+		modelReplacements["models/hassassinf.mdl"] = "models/dxclassic/hassassinf.mdl";
+		modelReplacements["models/hgruntf.mdl"] = "models/dxclassic/hgruntf.mdl";
+		modelReplacements["models/islavef.mdl"] = "models/dxclassic/islavef.mdl";
+		modelReplacements["models/player.mdl"] = "models/dxclassic/player.mdl";
+		modelReplacements["models/gonome.mdl"] = "models/dxclassic/gonome.mdl";
+		modelReplacements["models/tor.mdl"] = "models/dxclassic/tor.mdl";
+		modelReplacements["models/torf.mdl"] = "models/dxclassic/torf.mdl";
+		modelReplacements["models/hgrunt.mdl"] = "models/dxclassic/hgrunt.mdl";
 		modelReplacements["models/hlclassic/barney.mdl"] = "models/hlclassic/barney.mdl";
-		modelReplacements["models/hlclassic/hgrunt.mdl"] = "models/AutoClassicMode/hgrunt.mdl"; // the vanilla classic grunt is missing rpg anims
+		modelReplacements["models/hlclassic/hgrunt.mdl"] = "models/dxclassic/hgrunt.mdl"; // the vanilla classic grunt is missing rpg anims
 		modelReplacements["models/hlclassic/hassassin.mdl"] = "models/hlclassic/hassassin.mdl";
 		modelReplacements["models/hlclassic/islave.mdl"] = "models/hlclassic/islave.mdl";
 		modelReplacements["models/hlclassic/agrunt.mdl"] = "models/hlclassic/agrunt.mdl";
 		
-		modelReplacements["models/v_saw.mdl"] = "models/AutoClassicMode/v_saw.mdl";
-		modelReplacements["models/p_saw.mdl"] = "models/AutoClassicMode/p_saw.mdl";
-		modelReplacements["models/w_saw.mdl"] = "models/AutoClassicMode/w_saw.mdl";
-		modelReplacements["models/v_m40a1.mdl"] = "models/AutoClassicMode/v_m40a1.mdl";
-		modelReplacements["models/p_m40a1.mdl"] = "models/AutoClassicMode/p_m40a1.mdl";
-		modelReplacements["models/w_m40a1.mdl"] = "models/AutoClassicMode/w_m40a1.mdl";
-		modelReplacements["models/v_spore_launcher.mdl"] = "models/AutoClassicMode/v_spore_launcher.mdl";
-		modelReplacements["models/p_spore_launcher.mdl"] = "models/AutoClassicMode/p_spore_launcher.mdl";
-		modelReplacements["models/w_spore_launcher.mdl"] = "models/AutoClassicMode/w_spore_launcher.mdl";
-		modelReplacements["models/v_displacer.mdl"] = "models/AutoClassicMode/v_displacer.mdl";
-		modelReplacements["models/p_displacer.mdl"] = "models/AutoClassicMode/p_displacer.mdl";
-		modelReplacements["models/w_displacer.mdl"] = "models/AutoClassicMode/w_displacer.mdl";
-		modelReplacements["models/w_pipe_wrench.mdl"] = "models/AutoClassicMode/w_pipe_wrench.mdl";
-		modelReplacements["models/v_pipe_wrench.mdl"] = "models/AutoClassicMode/v_pipe_wrench.mdl";
-		modelReplacements["models/p_pipe_wrench.mdl"] = "models/AutoClassicMode/p_pipe_wrench.mdl";
+		modelReplacements["models/v_saw.mdl"] = "models/dxclassic/v_saw.mdl";
+		modelReplacements["models/p_saw.mdl"] = "models/dxclassic/p_saw.mdl";
+		modelReplacements["models/w_saw.mdl"] = "models/dxclassic/w_saw.mdl";
+		modelReplacements["models/v_m40a1.mdl"] = "models/dxclassic/v_m40a1.mdl";
+		modelReplacements["models/p_m40a1.mdl"] = "models/dxclassic/p_m40a1.mdl";
+		modelReplacements["models/w_m40a1.mdl"] = "models/dxclassic/w_m40a1.mdl";
+		modelReplacements["models/v_spore_launcher.mdl"] = "models/dxclassic/v_spore_launcher.mdl";
+		modelReplacements["models/p_spore_launcher.mdl"] = "models/dxclassic/p_spore_launcher.mdl";
+		modelReplacements["models/w_spore_launcher.mdl"] = "models/dxclassic/w_spore_launcher.mdl";
+		modelReplacements["models/v_displacer.mdl"] = "models/dxclassic/v_displacer.mdl";
+		modelReplacements["models/p_displacer.mdl"] = "models/dxclassic/p_displacer.mdl";
+		modelReplacements["models/w_displacer.mdl"] = "models/dxclassic/w_displacer.mdl";
+		modelReplacements["models/w_pipe_wrench.mdl"] = "models/dxclassic/w_pipe_wrench.mdl";
+		modelReplacements["models/v_pipe_wrench.mdl"] = "models/dxclassic/v_pipe_wrench.mdl";
+		modelReplacements["models/p_pipe_wrench.mdl"] = "models/dxclassic/p_pipe_wrench.mdl";
 		// TODO: dual and golden uzi models don't work (except for view model)
-		modelReplacements["models/v_uzi.mdl"] = "models/AutoClassicMode/v_uzi.mdl";
-		modelReplacements["models/p_uzi.mdl"] = "models/AutoClassicMode/p_uzi.mdl";
-		modelReplacements["models/w_uzi.mdl"] = "models/AutoClassicMode/w_uzi.mdl";
-		//modelReplacements["models/w_2uzis.mdl"] = "models/AutoClassicMode/w_2uzis.mdl";
-		modelReplacements["models/p_2uzis.mdl"] = "models/AutoClassicMode/p_2uzis.mdl";
-		modelReplacements["models/p_uzi_gold.mdl"] = "models/AutoClassicMode/p_uzi_gold.mdl";
-		modelReplacements["models/w_uzi_gold.mdl"] = "models/AutoClassicMode/w_uzi_gold.mdl";
-		modelReplacements["models/p_2uzis_gold.mdl"] = "models/AutoClassicMode/p_2uzis_gold.mdl";
-		//modelReplacements["models/w_2uzis_gold.mdl"] = "models/AutoClassicMode/w_2uzis_gold.mdl";
-		modelReplacements["models/v_minigun.mdl"] = "models/AutoClassicMode/v_minigun.mdl";
-		modelReplacements["models/p_minigunidle.mdl"] = "models/AutoClassicMode/p_minigunidle.mdl";
-		modelReplacements["models/p_minigunspin.mdl"] = "models/AutoClassicMode/p_minigunspin.mdl";
-		modelReplacements["models/w_minigun.mdl"] = "models/AutoClassicMode/w_minigun.mdl";
-		modelReplacements["models/v_desert_eagle.mdl"] = "models/AutoClassicMode/v_desert_eagle.mdl";
-		modelReplacements["models/w_desert_eagle.mdl"] = "models/AutoClassicMode/w_desert_eagle.mdl";
-		modelReplacements["models/p_desert_eagle.mdl"] = "models/AutoClassicMode/p_desert_eagle.mdl";
-		modelReplacements["models/v_bgrap.mdl"] = "models/AutoClassicMode/v_bgrap.mdl";
-		modelReplacements["models/p_bgrap.mdl"] = "models/AutoClassicMode/p_bgrap.mdl";
-		modelReplacements["models/w_bgrap.mdl"] = "models/AutoClassicMode/w_bgrap.mdl";
-		modelReplacements["models/v_shock.mdl"] = "models/AutoClassicMode/v_shock.mdl";
-		modelReplacements["models/p_shock.mdl"] = "models/AutoClassicMode/p_shock.mdl";
-		modelReplacements["models/w_uzi_clip.mdl"] = "models/AutoClassicMode/w_uzi_clip.mdl";
-		modelReplacements["models/w_saw_clip.mdl"] = "models/AutoClassicMode/w_saw_clip.mdl";
-		modelReplacements["models/w_m40a1clip.mdl"] = "models/AutoClassicMode/w_m40a1clip.mdl";
+		modelReplacements["models/v_uzi.mdl"] = "models/dxclassic/v_uzi.mdl";
+		modelReplacements["models/p_uzi.mdl"] = "models/dxclassic/p_uzi.mdl";
+		modelReplacements["models/w_uzi.mdl"] = "models/dxclassic/w_uzi.mdl";
+		//modelReplacements["models/w_2uzis.mdl"] = "models/dxclassic/w_2uzis.mdl";
+		modelReplacements["models/p_2uzis.mdl"] = "models/dxclassic/p_2uzis.mdl";
+		modelReplacements["models/p_uzi_gold.mdl"] = "models/dxclassic/p_uzi_gold.mdl";
+		modelReplacements["models/w_uzi_gold.mdl"] = "models/dxclassic/w_uzi_gold.mdl";
+		modelReplacements["models/p_2uzis_gold.mdl"] = "models/dxclassic/p_2uzis_gold.mdl";
+		//modelReplacements["models/w_2uzis_gold.mdl"] = "models/dxclassic/w_2uzis_gold.mdl";
+		modelReplacements["models/v_minigun.mdl"] = "models/dxclassic/v_minigun.mdl";
+		modelReplacements["models/p_minigunidle.mdl"] = "models/dxclassic/p_minigunidle.mdl";
+		modelReplacements["models/p_minigunspin.mdl"] = "models/dxclassic/p_minigunspin.mdl";
+		modelReplacements["models/w_minigun.mdl"] = "models/dxclassic/w_minigun.mdl";
+		modelReplacements["models/v_desert_eagle.mdl"] = "models/dxclassic/v_desert_eagle.mdl";
+		modelReplacements["models/w_desert_eagle.mdl"] = "models/dxclassic/w_desert_eagle.mdl";
+		modelReplacements["models/p_desert_eagle.mdl"] = "models/dxclassic/p_desert_eagle.mdl";
+		modelReplacements["models/v_bgrap.mdl"] = "models/dxclassic/v_bgrap.mdl";
+		modelReplacements["models/p_bgrap.mdl"] = "models/dxclassic/p_bgrap.mdl";
+		modelReplacements["models/w_bgrap.mdl"] = "models/dxclassic/w_bgrap.mdl";
+		modelReplacements["models/v_shock.mdl"] = "models/dxclassic/v_shock.mdl";
+		modelReplacements["models/p_shock.mdl"] = "models/dxclassic/p_shock.mdl";
+		modelReplacements["models/w_uzi_clip.mdl"] = "models/dxclassic/w_uzi_clip.mdl";
+		modelReplacements["models/w_saw_clip.mdl"] = "models/dxclassic/w_saw_clip.mdl";
+		modelReplacements["models/w_m40a1clip.mdl"] = "models/dxclassic/w_m40a1clip.mdl";
 		
 		modelReplacements["models/p_357.mdl"] = "models/hlclassic/p_357.mdl";
 		modelReplacements["models/v_357.mdl"] = "models/hlclassic/v_357.mdl";
@@ -208,18 +208,18 @@ namespace AutoClassicMode {
 		modelReplacements["models/w_weaponbox.mdl"] = "models/hlclassic/w_weaponbox.mdl";
 		modelReplacements["models/zombie.mdl"] = "models/hlclassic/zombie.mdl";
 		
-		soundReplacements["monster_barney"] = "../AutoClassicMode/barney.txt";
-		soundReplacements["monster_bodyguard"] = "../AutoClassicMode/weapons.txt";
-		soundReplacements["monster_grunt_ally_repel"] = "../AutoClassicMode/weapons.txt";
-		soundReplacements["monster_grunt_repel"] = "../AutoClassicMode/weapons.txt";
-		soundReplacements["monster_human_assassin"] = "../AutoClassicMode/weapons.txt";
-		soundReplacements["monster_human_grunt"] = "../AutoClassicMode/weapons.txt";
-		soundReplacements["monster_human_grunt_ally"] = "../AutoClassicMode/weapons.txt";
-		soundReplacements["monster_hwgrunt"] = "../AutoClassicMode/weapons.txt";
-		soundReplacements["monster_hwgrunt_repel"] = "../AutoClassicMode/weapons.txt";
-		soundReplacements["monster_male_assassin"] = "../AutoClassicMode/weapons.txt";
-		soundReplacements["monster_robogrunt"] = "../AutoClassicMode/weapons.txt";
-		soundReplacements["monster_robogrunt_repel"] = "../AutoClassicMode/weapons.txt";
+		soundReplacements["monster_barney"] = "../dxclassic/barney.txt";
+		soundReplacements["monster_bodyguard"] = "../dxclassic/weapons.txt";
+		soundReplacements["monster_grunt_ally_repel"] = "../dxclassic/weapons.txt";
+		soundReplacements["monster_grunt_repel"] = "../dxclassic/weapons.txt";
+		soundReplacements["monster_human_assassin"] = "../dxclassic/weapons.txt";
+		soundReplacements["monster_human_grunt"] = "../dxclassic/weapons.txt";
+		soundReplacements["monster_human_grunt_ally"] = "../dxclassic/weapons.txt";
+		soundReplacements["monster_hwgrunt"] = "../dxclassic/weapons.txt";
+		soundReplacements["monster_hwgrunt_repel"] = "../dxclassic/weapons.txt";
+		soundReplacements["monster_male_assassin"] = "../dxclassic/weapons.txt";
+		soundReplacements["monster_robogrunt"] = "../dxclassic/weapons.txt";
+		soundReplacements["monster_robogrunt_repel"] = "../dxclassic/weapons.txt";
 		
 		defaultWeaponModels["weapon_m249"] = "saw";
 		defaultWeaponModels["weapon_sniperrifle"] = "m40a1";
@@ -481,13 +481,13 @@ namespace AutoClassicMode {
 				weps = bshift_weapons;
 				force_replace = bshift_force_replace;
 				
-				g_Game.PrecacheModel("models/AutoClassicMode/bshift/v_satchel_radio.mdl");
+				g_Game.PrecacheModel("models/dxclassic/bshift/v_satchel_radio.mdl");
 			}
 			if (mapType == MAP_OPPOSING_FORCE)
 			{
 				subfolder = "op4/";
 				force_replace = op4_force_replace;
-				g_Game.PrecacheModel("models/AutoClassicMode/op4/v_satchel_radio.mdl");
+				g_Game.PrecacheModel("models/dxclassic/op4/v_satchel_radio.mdl");
 			}
 				
 			keys = weps.getKeys();

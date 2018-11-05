@@ -1,5 +1,6 @@
 // TODO:
 // rename to dxclassic (don't forget model sounds)
+// remove prints
 // 1719/2274 are classic (75%)
 
 // TODO later:
@@ -23,7 +24,7 @@
 
 #include "ReplacementLists"
 
-namespace AutoClassicMode {
+namespace ClassicModeDeluxe {
 
 	enum map_types {
 		MAP_HALF_LIFE = 0,
@@ -56,14 +57,14 @@ namespace AutoClassicMode {
 	dictionary bshift_force_replace;
 	dictionary op4_force_replace;
 	
-	string replacementModelPath = "models/AutoClassicMode/";
-	string replacementSpritePath = "sprites/AutoClassicMode/";
-	string replacementSoundPath = "AutoClassicMode/";
+	string replacementModelPath = "models/dxclassic/";
+	string replacementSpritePath = "sprites/dxclassic/";
+	string replacementSoundPath = "dxclassic/";
 	
 	array<uint64> lastWeapons; // weapon states for all players (have/not have)
 	array<array<EHandle>> satchels; // active satchel
 	
-	// keep this in sync with sound/AutoClassicMode/weapons.txt
+	// keep this in sync with sound/dxclassic/weapons.txt
 	array<string> replacedSounds = {
 		"weapons/sniper_fire.wav",
 		"weapons/uzi/fire_both1.wav",
@@ -248,7 +249,7 @@ namespace AutoClassicMode {
 			}
 			mon.pev.body = newBody;
 				
-			println("AutoClassicMode(m): Replacing " + model + " -> " + replacement);
+			println("ClassicModeDeluxe(m): Replacing " + model + " -> " + replacement);
 			
 			int oldSequence = mon.pev.sequence;
 			Vector mins = mon.pev.mins;
@@ -275,7 +276,7 @@ namespace AutoClassicMode {
 		{
 			string replacement;
 			force_replace.get(ent.pev.model, replacement);
-			println("AutoClassicMode(f): Replacing " + ent.pev.model + " -> " + replacement);
+			println("ClassicModeDeluxe(f): Replacing " + ent.pev.model + " -> " + replacement);
 			g_EntityFuncs.SetModel(ent, replacement);
 		}
 		else
@@ -296,7 +297,7 @@ namespace AutoClassicMode {
 			{
 				string replacement;
 				modelReplacements.get(ent.pev.model, replacement);				
-				println("AutoClassicMode(g): Replacing " + ent.pev.model + " -> " + replacement);
+				println("ClassicModeDeluxe(g): Replacing " + ent.pev.model + " -> " + replacement);
 				g_EntityFuncs.SetModel(ent, replacement);
 				ent.pev.pain_finished = 0; // special minigun keyvalue for this script
 			}
@@ -314,7 +315,7 @@ namespace AutoClassicMode {
 			return;
 			
 		if (wep.pev.classname == "weapon_9mmAR")
-			wep.KeyValue("CustomSpriteDir", "AutoClassicMode");
+			wep.KeyValue("CustomSpriteDir", "ClassicModeDeluxe");
 			
 		//println("Checking " + wep.pev.classname);
 		
@@ -483,7 +484,7 @@ namespace AutoClassicMode {
 		if (@wep != null)
 		{
 			if (wep.pev.classname == "weapon_9mmAR")
-				wep.KeyValue("CustomSpriteDir", "AutoClassicMode");
+				wep.KeyValue("CustomSpriteDir", "dxclassic");
 			g_Scheduler.SetTimeout("ProcessWeapon", 0, EHandle(ent));
 			return HOOK_CONTINUE;
 		}
@@ -760,7 +761,7 @@ namespace AutoClassicMode {
 						{
 							// update uzi third-person model when toggling between dual-weild
 							wep.pev.colormap = wep.m_fIsAkimbo ? 1 : 0;
-							if (int(string(plr.pev.weaponmodel).Find("AutoClassicMode")) != -1)
+							if (int(string(plr.pev.weaponmodel).Find("dxclassic")) != -1)
 							{
 								if (wep.m_fIsAkimbo)
 									plr.pev.weaponmodel = replacementModelPath + "p_2uzis.mdl";
