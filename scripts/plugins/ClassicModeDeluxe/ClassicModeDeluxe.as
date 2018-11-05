@@ -57,7 +57,7 @@ dictionary loadMapList(string fpath)
 		maps[line] = true;
 		mapCount++;
 	}
-	println("ClassicModeDeluxe: Loaded " + mapCount + " maps from " + fpath);
+	//println("ClassicModeDeluxe: Loaded " + mapCount + " maps from " + fpath);
 	return maps;
 }
 
@@ -130,7 +130,7 @@ void PluginInit()
 	classic_maps = loadMapList(plugin_path + "classic_maps.txt");
 	op4_maps = loadMapList(plugin_path + "op4_maps.txt");
 	bshift_maps = loadMapList(plugin_path + "bshift_maps.txt");
-	println("ClassicModeDeluxe: Map lists loaded");
+	//println("ClassicModeDeluxe: Map lists loaded");
 }
 
 void MapInit()
@@ -154,8 +154,6 @@ void MapInit()
 		isClassicMap = true;
 	else if (cvar_mode.GetInt() == MODE_ALWAYS_OFF)
 		isClassicMap = false;
-	
-	println("IS CLASSIC MAP PLUGIN? " + isClassicMap); 
 	
 	if (isClassicMap)
 	{
