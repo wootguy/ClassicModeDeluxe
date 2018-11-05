@@ -1,5 +1,4 @@
 // TODO:
-// rename to dxclassic (don't forget model sounds)
 // remove prints
 // 1719/2274 are classic (75%)
 
@@ -164,7 +163,7 @@ namespace ClassicModeDeluxe {
 			
 			if (blacklist.exists(originalModel))
 			{
-				println("Undoing model replacement: " + mon.pev.model + " --> " + originalModel);
+				//println("Undoing model replacement: " + mon.pev.model + " --> " + originalModel);
 				int idx = g_Game.PrecacheModel(originalModel);
 
 				int oldBody = mon.pev.body;
@@ -249,7 +248,7 @@ namespace ClassicModeDeluxe {
 			}
 			mon.pev.body = newBody;
 				
-			println("ClassicModeDeluxe(m): Replacing " + model + " -> " + replacement);
+			//println("ClassicModeDeluxe(m): Replacing " + model + " -> " + replacement);
 			
 			int oldSequence = mon.pev.sequence;
 			Vector mins = mon.pev.mins;
@@ -276,7 +275,7 @@ namespace ClassicModeDeluxe {
 		{
 			string replacement;
 			force_replace.get(ent.pev.model, replacement);
-			println("ClassicModeDeluxe(f): Replacing " + ent.pev.model + " -> " + replacement);
+			//println("ClassicModeDeluxe(f): Replacing " + ent.pev.model + " -> " + replacement);
 			g_EntityFuncs.SetModel(ent, replacement);
 		}
 		else
@@ -288,7 +287,7 @@ namespace ClassicModeDeluxe {
 				
 				if (blacklist.exists(originalModel))
 				{
-					println("Undoing model replacement for " + originalModel);
+					//println("Undoing model replacement for " + originalModel);
 					int idx = g_Game.PrecacheModel(originalModel);
 					g_EntityFuncs.SetModel(ent, originalModel);
 				}
@@ -297,7 +296,7 @@ namespace ClassicModeDeluxe {
 			{
 				string replacement;
 				modelReplacements.get(ent.pev.model, replacement);				
-				println("ClassicModeDeluxe(g): Replacing " + ent.pev.model + " -> " + replacement);
+				//println("ClassicModeDeluxe(g): Replacing " + ent.pev.model + " -> " + replacement);
 				g_EntityFuncs.SetModel(ent, replacement);
 				ent.pev.pain_finished = 0; // special minigun keyvalue for this script
 			}
@@ -334,7 +333,7 @@ namespace ClassicModeDeluxe {
 		
 		if (defaultModelName.Length() == 0)
 		{
-			println("Failed to load default weapon models for " + cname);
+			//println("Failed to load default weapon models for " + cname);
 			return;
 		}
 		
@@ -413,7 +412,7 @@ namespace ClassicModeDeluxe {
 		if (!shouldSwap)
 			return; // all models are custom or have no replacements
 		
-		println("Replacement models are " + vmodel + " " + pmodel + " " +  wmodel);
+		//println("Replacement models are " + vmodel + " " + pmodel + " " +  wmodel);
 		
 		if (vmodel.Length() > 0)
 			wep.KeyValue("wpn_v_model", vmodel);
