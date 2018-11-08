@@ -135,7 +135,7 @@ void PluginInit()
 	@cvar_skill = CCVar("skill", 1, "0 = SC 5.0, 1 = SC 3.0, 2 = HL", ConCommandFlag::AdminOnly);
 	@cvar_fastmove = CCVar("fastmove", 1, "1 = enable Half-Life movement speed (320)", ConCommandFlag::AdminOnly);
 	
-	default_skill_settings = loadSkillSettings(plugin_path + "skill_default.cfg");
+	default_skill_settings = loadSkillSettings(plugin_path + skill_default_file);
 	skill1_settings = loadSkillSettings(plugin_path + skill1_file);
 	skill2_settings = loadSkillSettings(plugin_path + skill2_file);
 	
