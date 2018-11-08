@@ -1,7 +1,3 @@
-// TODO:
-// remove prints
-// 1719/2274 are classic (75%)
-
 // TODO later:
 // replace sci model for ba_yard4
 // if any map has a custom satchel but not a custom satchel_radio then the MAP WILL CRASH (mb game does this anyway?)
@@ -103,6 +99,8 @@ namespace ClassicModeDeluxe {
 			g_EngineFuncs.ChangeLevel(g_Engine.mapname);
 			return;
 		}
+		
+		caller.pev.renderfx = 1; // tell the plugin that we loaded successfully
 	}
 	
 	void MapActivate(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)

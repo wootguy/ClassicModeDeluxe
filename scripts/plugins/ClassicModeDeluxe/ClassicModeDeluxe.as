@@ -9,6 +9,7 @@ void print(string text) { g_Game.AlertMessage( at_console, text); }
 void println(string text) { print(text + "\n"); }
 
 CCVar@ cvar_mode;
+CCVar@ cvar_skill;
 CCVar@ cvar_fastmove;
 
 dictionary classic_maps;
@@ -25,15 +26,20 @@ enum MODES {
 }
 
 bool g_basic_mode = false;
+bool brokenInstall = false;
 
 const float DEFAULT_MAX_SPEED_SVEN = 270;
 const float DEFAULT_MAX_SPEED_HL = 320;
 
 string plugin_path = "scripts/plugins/ClassicModeDeluxe/";
+string skill_default_file = "skill_sven50.cfg";
+string skill1_file = "skill_sven30_normal.cfg";
+string skill2_file = "skill_hl_hard.cfg";
 
 // load default skill settings so this plugin doesn't override any custom map skill settings
 dictionary default_skill_settings;
-dictionary classic_skill_settings;
+dictionary skill1_settings;
+dictionary skill2_settings;
 
 dictionary loadMapList(string fpath)
 {
@@ -97,6 +103,9 @@ dictionary loadSkillSettings(string fpath)
 
 void execClassicSkillSettings()
 {	
+	dictionary classic_skill_settings = skill1_settings;
+	if (cvar_skill.GetInt() == 2)
+		classic_skill_settings = skill2_settings;
 	array<string> keys = classic_skill_settings.getKeys();
 	for (uint i = 0; i < keys.size(); i++)
 	{
@@ -123,10 +132,13 @@ void PluginInit()
 	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @ClassicModeDeluxeSay );
 	
 	@cvar_mode = CCVar("mode", -1, "0 = off, 1 = on, -1 = auto", ConCommandFlag::AdminOnly);
+	@cvar_skill = CCVar("skill", 1, "0 = SC 5.0, 1 = SC 3.0, 2 = HL", ConCommandFlag::AdminOnly);
 	@cvar_fastmove = CCVar("fastmove", 1, "1 = enable Half-Life movement speed (320)", ConCommandFlag::AdminOnly);
 	
-	default_skill_settings = loadSkillSettings(plugin_path + "skill.cfg");
-	classic_skill_settings = loadSkillSettings(plugin_path + "skill_classic.cfg");
+	default_skill_settings = loadSkillSettings(plugin_path + "skill_default.cfg");
+	skill1_settings = loadSkillSettings(plugin_path + skill1_file);
+	skill2_settings = loadSkillSettings(plugin_path + skill2_file);
+	
 	classic_maps = loadMapList(plugin_path + "classic_maps.txt");
 	op4_maps = loadMapList(plugin_path + "op4_maps.txt");
 	bshift_maps = loadMapList(plugin_path + "bshift_maps.txt");
@@ -161,7 +173,8 @@ void MapInit()
 		g_EngineFuncs.ServerCommand("weaponmode_mp5 0;\n");
 		g_EngineFuncs.ServerExecute();
 		
-		execClassicSkillSettings();
+		if (cvar_skill.GetInt() > 0)
+			execClassicSkillSettings();
 		
 		float sv_maxspeed = g_EngineFuncs.CVarGetFloat("sv_maxspeed");
 		if (cvar_fastmove.GetInt() != 0 and sv_maxspeed == DEFAULT_MAX_SPEED_SVEN)
@@ -179,18 +192,13 @@ void MapInit()
 	
 	classicTrigger.Think();
 	g_EntityFuncs.FireTargets("ClassicModeDeluxeTrigger", classicTrigger, classicTrigger, USE_ON, 0.0f);
-	g_EntityFuncs.Remove(classicTrigger);
 	
-	if (isClassicMap and !g_basic_mode)
-	{
-		keys["targetname"] = "game_playerspawn";
-		keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::PlayerSpawn";
-		g_EntityFuncs.CreateEntity("trigger_script", keys, true);
-		
-		keys["targetname"] = "game_playerdie";
-		keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::PlayerDie";
-		g_EntityFuncs.CreateEntity("trigger_script", keys, true);
+	brokenInstall = classicTrigger.pev.renderfx != 1;
+	if (brokenInstall) {
+		println("ClassicModeDeluxe: Map script failed to load. Did you install the custom default_map_settings.cfg?");
 	}
+	
+	g_EntityFuncs.Remove(classicTrigger);
 }
 
 void MapActivate()
@@ -207,6 +215,14 @@ void MapActivate()
 		classicTrigger.Think();
 		g_EntityFuncs.FireTargets("ClassicModeDeluxeTrigger", classicTrigger, classicTrigger, USE_ON, 0.0f);
 		g_EntityFuncs.Remove(classicTrigger);
+		
+		keys["targetname"] = "game_playerspawn";
+		keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::PlayerSpawn";
+		g_EntityFuncs.CreateEntity("trigger_script", keys, true);
+		
+		keys["targetname"] = "game_playerdie";
+		keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::PlayerDie";
+		g_EntityFuncs.CreateEntity("trigger_script", keys, true);
 	}
 }
 
@@ -218,6 +234,12 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 	{
 		if (args[0] == ".classic" or args[0] == ".cm")
 		{
+			if (brokenInstall)
+			{
+				g_PlayerFuncs.SayText(plr, "The ClassicModeDeluxe map script failed to load.\n");
+				g_PlayerFuncs.SayText(plr, "Did you install the custom default_map_settings.cfg?\n");
+				return true;
+			}
 			if (args.ArgC() > 1)
 			{
 				string arg = args[1].ToLowercase();
