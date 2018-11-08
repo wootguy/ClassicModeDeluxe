@@ -269,7 +269,7 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 						g_PlayerFuncs.SayText(plr, "Classic mode is already set to OFF\n");
 					cvar_mode.SetInt(MODE_ALWAYS_OFF);
 				}
-				else if (arg == "2" or arg == "auto")
+				else if (arg == "-1" or arg == "auto")
 				{
 					if (cvar_mode.GetInt() != MODE_AUTO)
 						g_PlayerFuncs.SayTextAll(plr, "Classic mode is now AUTO. Only classic maps will have classic mode enabled.\n");
