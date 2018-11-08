@@ -494,7 +494,9 @@ namespace ClassicModeDeluxe {
 	HookReturnCode PlayerTakeDamage(DamageInfo@ info)
 	{
 		CBasePlayer@ plr = cast<CBasePlayer@>(g_EntityFuncs.Instance(info.pVictim.pev));
-		HalfLifeTakeDamage(plr, info.pAttacker.pev, info.pInflictor.pev, info.flDamage, info.bitsDamageType);
+		entvars_t@ pevInflictor = info.pInflictor !is null ? info.pInflictor.pev : null;
+		entvars_t@ pevAttacker = info.pAttacker !is null ? info.pAttacker.pev : null;
+		HalfLifeTakeDamage(plr, pevInflictor, pevAttacker, info.flDamage, info.bitsDamageType);
 		info.flDamage = 0; // bypass sven's damage logic
 		return HOOK_CONTINUE;
 	}
