@@ -496,6 +496,10 @@ namespace ClassicModeDeluxe {
 		CBasePlayer@ plr = cast<CBasePlayer@>(g_EntityFuncs.Instance(info.pVictim.pev));
 		entvars_t@ pevInflictor = info.pInflictor !is null ? info.pInflictor.pev : null;
 		entvars_t@ pevAttacker = info.pAttacker !is null ? info.pAttacker.pev : null;
+		
+		if (info.pInflictor !is null and plr !is null and plr.IRelationship(info.pInflictor) <= R_NO)
+			return HOOK_CONTINUE; // don't take damage from other players or ally monsters
+		
 		HalfLifeTakeDamage(plr, pevInflictor, pevAttacker, info.flDamage, info.bitsDamageType);
 		info.flDamage = 0; // bypass sven's damage logic
 		return HOOK_CONTINUE;
