@@ -65,7 +65,7 @@ namespace ClassicModeDeluxe {
 		modelReplacements["models/player.mdl"] = "models/dxclassic/player.mdl";
 		modelReplacements["models/gonome.mdl"] = "models/dxclassic/gonome.mdl";
 		modelReplacements["models/tor.mdl"] = "models/dxclassic/tor.mdl";
-		modelReplacements["models/torf.mdl"] = "models/dxclassic/torf.mdl";
+		modelReplacements["models/Torf.mdl"] = "models/dxclassic/Torf.mdl";
 		modelReplacements["models/hgrunt.mdl"] = "models/dxclassic/hgrunt.mdl";
 		modelReplacements["models/hlclassic/barney.mdl"] = "models/hlclassic/barney.mdl";
 		modelReplacements["models/hlclassic/hgrunt.mdl"] = "models/dxclassic/hgrunt.mdl"; // the vanilla classic grunt is missing rpg anims
@@ -511,6 +511,27 @@ namespace ClassicModeDeluxe {
 		g_Game.PrecacheModel(replacementSpritePath + "640hud1.spr");
 		g_Game.PrecacheModel(replacementSpritePath + "640hud4.spr");
 		g_Game.PrecacheGeneric(replacementSpritePath + "weapon_9mmar.txt");
+		
+		// always precache submodels or else clients crash when the parent model is used
+		// TODO: recompile without submodels
+		g_Game.PrecacheGeneric("models/dxclassic/agruntf01.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/agruntfT.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/apacheft.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/blkop_apachet.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/blkop_ospreyt.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/hassassinfT.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/hgrunt_medicf01.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/hgrunt_torch01.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/hgrunt_torch02.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/hgrunt_torchf01.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/hgrunt_torchf02.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/islavef01.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/islavef02.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/islavefT.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/ospreyfT.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/ospreyt.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/playert.mdl");
+		g_Game.PrecacheGeneric("models/dxclassic/w_uzi_clipT.mdl");
 		
 		// somehow the built-in classic mode prevents these models from precaching, even if there is a monster_ entity for it.
 		// There's no way to know if this is going to spawn from a squadmaker or something, so better just always precache it.

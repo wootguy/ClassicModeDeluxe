@@ -1728,6 +1728,9 @@ sonic2
 stadium3
 svencoop1
 svencoop2
+tb_fun1f
+tb_fun2f
+tb_fun3
 the_unknown_entmap
 the_daikon_warfare1
 the_daikon_warfare2
