@@ -255,6 +255,11 @@ namespace ClassicModeDeluxe {
 			g_EntityFuncs.SetSize(mon.pev, mins, maxs);
 			mon.pev.sequence = oldSequence;
 			
+			if (cname == "monster_human_grunt" and oldSequence == 48) {
+				// fix hgrunt repel animation (for some reason all other repel monsters are ok)
+				mon.pev.sequence = 50;
+			}
+			
 			if (cname == "monster_hevsuit_dead") {
 				mon.pev.sequence -= 104;
 				mon.pev.body = 1;
