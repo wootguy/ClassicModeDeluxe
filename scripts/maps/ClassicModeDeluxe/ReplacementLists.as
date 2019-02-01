@@ -533,6 +533,44 @@ namespace ClassicModeDeluxe {
 		g_Game.PrecacheGeneric("models/dxclassic/playert.mdl");
 		g_Game.PrecacheGeneric("models/dxclassic/w_uzi_clipT.mdl");
 		
+		if (mapType == MAP_BLUE_SHIFT) {
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/barney01.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/barney02.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/barney03.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/barney04.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/barney05.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/barney06.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/barneyt.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/civ_coat_scientist01.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/civ_paper_scientist01.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/civ_scientist01.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/console_civ_scientist01.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/gordon_scientistt.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/hgrunt01.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/hgrunt02.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/hgrunt03.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/hgruntt.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/houndeyet.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist_cower01.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist01.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist02.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist03.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist04.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist05.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist06.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist07.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist08.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist09.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist10.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientist11.mdl"); // god damn gearbox calm down
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/scientistt.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/zombie01.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/zombie02.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/zombie03.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/zombie04.mdl");
+			g_Game.PrecacheGeneric("models/dxclassic/bshift/zombiet.mdl");
+		}
+		
 		// somehow the built-in classic mode prevents these models from precaching, even if there is a monster_ entity for it.
 		// There's no way to know if this is going to spawn from a squadmaker or something, so better just always precache it.
 		g_Game.PrecacheModel("models/blkop_apache.mdl");
