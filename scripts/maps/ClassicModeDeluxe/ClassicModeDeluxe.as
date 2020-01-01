@@ -216,8 +216,8 @@ namespace ClassicModeDeluxe {
 			{
 				if (classicFriendlies.exists(cname))
 				{
-					if ((isBarney and mon.IRelationshipByClass(CLASS_PLAYER) > R_NO) or
-						(!isBarney and mon.IRelationshipByClass(CLASS_PLAYER) < R_NO))
+					if ((isBarney and !mon.IsPlayerAlly()) or
+						(!isBarney and mon.IsPlayerAlly()))
 						classicFriendlies.get(mon.pev.classname, replacement);
 					else if (isGrunt and !isDead)
 						modelReplacements.get(model, replacement); // still want to replace the default model since its missing anims
