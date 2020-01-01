@@ -15,6 +15,7 @@ CCVar@ cvar_fastmove;
 dictionary classic_maps;
 dictionary op4_maps;
 dictionary bshift_maps;
+dictionary ignore_maps;
 
 bool isClassicMap = false;
 int mapType = MAP_HALF_LIFE;
@@ -142,11 +143,16 @@ void PluginInit()
 	classic_maps = loadMapList(plugin_path + "classic_maps.txt");
 	op4_maps = loadMapList(plugin_path + "op4_maps.txt");
 	bshift_maps = loadMapList(plugin_path + "bshift_maps.txt");
+	ignore_maps = loadMapList(plugin_path + "ignore_maps.txt");
 	//println("ClassicModeDeluxe: Map lists loaded");
 }
 
 void MapInit()
 {
+	if (ignore_maps.exists(g_Engine.mapname)) {
+		return;
+	}
+	
 	// classic mode votes will only restart the map but not change anything. Might as well disable it.
 	g_EngineFuncs.ServerCommand("mp_voteclassicmoderequired -1;\n");
 	g_EngineFuncs.ServerExecute();

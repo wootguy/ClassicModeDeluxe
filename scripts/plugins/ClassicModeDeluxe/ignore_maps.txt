@@ -1,0 +1,3 @@
+// Don't even try to change classic mode settings for these maps
+// because they already force it on or something.
+
