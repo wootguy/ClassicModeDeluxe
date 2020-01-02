@@ -203,7 +203,7 @@ namespace ClassicModeDeluxe {
 			//println("Le model replace " + cname);
 			bool isDead = int(cname.Find("_dead")) != -1;
 			bool isGrunt = int(cname.Find("grunt")) != -1 and cname != "monster_alien_grunt";
-			bool isBarney = int(cname.Find("barney")) != -1;
+			bool isBarney = int(cname.Find("barney")) != -1 && int(cname.Find("barney_dead")) == -1;
 		
 			string replacement;
 			if (should_force_replace)

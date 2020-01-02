@@ -65,7 +65,7 @@ namespace ClassicModeDeluxe {
 		modelReplacements["models/player.mdl"] = "models/dxclassic/player.mdl";
 		modelReplacements["models/gonome.mdl"] = "models/dxclassic/gonome.mdl";
 		modelReplacements["models/tor.mdl"] = "models/dxclassic/tor.mdl";
-		modelReplacements["models/Torf.mdl"] = "models/dxclassic/Torf.mdl";
+		modelReplacements["models/torf.mdl"] = "models/dxclassic/Torf.mdl";
 		modelReplacements["models/hgrunt.mdl"] = "models/dxclassic/hgrunt.mdl";
 		modelReplacements["models/hlclassic/barney.mdl"] = "models/hlclassic/barney.mdl";
 		modelReplacements["models/hlclassic/hgrunt.mdl"] = "models/dxclassic/hgrunt.mdl"; // the vanilla classic grunt is missing rpg anims
