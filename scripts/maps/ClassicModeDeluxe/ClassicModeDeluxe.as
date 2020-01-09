@@ -216,6 +216,7 @@ namespace ClassicModeDeluxe {
 			{
 				if (classicFriendlies.exists(cname))
 				{
+					// barney is the only classsic monster that spawns friendly by default
 					if ((isBarney and !mon.IsPlayerAlly()) or
 						(!isBarney and mon.IsPlayerAlly()))
 						classicFriendlies.get(mon.pev.classname, replacement);
