@@ -63,4 +63,4 @@ Let me know if any maps should be added to classic_maps.txt. Some maps made afte
 ```
 
 - Extract the archive to svencoop_addon. **If you have a custom version of default_map_settings.cfg, then don't extract mine. Instead, add this line to yours:**  
-`map_script ClassicModeDeluxe/ClassicModeDeluxe`
+`map_script ../plugins/ClassicModeDeluxe/ClassicModeDeluxeMap`
