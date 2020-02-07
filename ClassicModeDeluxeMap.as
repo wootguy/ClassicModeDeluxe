@@ -95,6 +95,7 @@ namespace ClassicModeDeluxe {
 		
 		if (isClassicMap != g_ClassicMode.IsEnabled())
 		{
+			g_ClassicMode.ResetState();
 			g_ClassicMode.SetEnabled(isClassicMap);
 			g_EngineFuncs.ChangeLevel(g_Engine.mapname);
 			return;
