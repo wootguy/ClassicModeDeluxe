@@ -52,14 +52,14 @@ namespace ClassicModeDeluxe {
 	dictionary bshift_force_replace;
 	dictionary op4_force_replace;
 	
-	string replacementModelPath = "models/dxclassic/";
-	string replacementSpritePath = "sprites/dxclassic/";
-	string replacementSoundPath = "dxclassic/";
+	string replacementModelPath = "models/cm_v1/";
+	string replacementSpritePath = "sprites/cm_v1/";
+	string replacementSoundPath = "cm_v1/";
 	
 	array<uint64> lastWeapons; // weapon states for all players (have/not have)
 	array<array<EHandle>> satchels; // active satchel
 	
-	// keep this in sync with sound/dxclassic/weapons.txt
+	// keep this in sync with sound/cm_v1/weapons.txt
 	array<string> replacedSounds = {
 		"weapons/sniper_fire.wav",
 		"weapons/uzi/fire_both1.wav",
@@ -319,7 +319,7 @@ namespace ClassicModeDeluxe {
 			return;
 			
 		if (wep.pev.classname == "weapon_9mmAR")
-			wep.KeyValue("CustomSpriteDir", "dxclassic");
+			wep.KeyValue("CustomSpriteDir", "cm_v1");
 			
 		//println("Checking " + wep.pev.classname);
 		
@@ -488,7 +488,7 @@ namespace ClassicModeDeluxe {
 		if (@wep != null)
 		{
 			if (wep.pev.classname == "weapon_9mmAR")
-				wep.KeyValue("CustomSpriteDir", "dxclassic");
+				wep.KeyValue("CustomSpriteDir", "cm_v1");
 			g_Scheduler.SetTimeout("ProcessWeapon", 0, EHandle(ent));
 			return HOOK_CONTINUE;
 		}
@@ -771,7 +771,7 @@ namespace ClassicModeDeluxe {
 						{
 							// update uzi third-person model when toggling between dual-weild
 							wep.pev.colormap = wep.m_fIsAkimbo ? 1 : 0;
-							if (int(string(plr.pev.weaponmodel).Find("dxclassic")) != -1)
+							if (int(string(plr.pev.weaponmodel).Find("cm_v1")) != -1)
 							{
 								if (wep.m_fIsAkimbo)
 									plr.pev.weaponmodel = replacementModelPath + "p_2uzis.mdl";

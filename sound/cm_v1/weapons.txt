@@ -1,8 +1,8 @@
-weapons/sniper_fire.wav			dxclassic/sniper_fire.wav
-weapons/sniper_bolt1.wav		dxclassic/sniper_bolt1.wav
-weapons/sniper_reload_first_seq.wav	dxclassic/sniper_reload_first_seq.wav
-weapons/uzi/fire_both1.wav		dxclassic/uzi_fire_both1.wav
-weapons/uzi/fire_both2.wav		dxclassic/uzi_fire_both2.wav
+weapons/sniper_fire.wav			cm_v1/sniper_fire.wav
+weapons/sniper_bolt1.wav		cm_v1/sniper_bolt1.wav
+weapons/sniper_reload_first_seq.wav	cm_v1/sniper_reload_first_seq.wav
+weapons/uzi/fire_both1.wav		cm_v1/uzi_fire_both1.wav
+weapons/uzi/fire_both2.wav		cm_v1/uzi_fire_both2.wav
 weapons/m16_3round.wav			hlclassic/hgrunt/gr_mgun1.wav
 weapons/sbarrel1.wav			hlclassic/weapons/sbarrel1.wav
 weapons/scock1.wav			hlclassic/weapons/scock1.wav
