@@ -9,7 +9,7 @@ namespace ClassicModeDeluxe {
 
 	void loadBlacklist()
 	{
-		string fpath = "scripts/plugins/ClassicModeDeluxe/gmr/" + string(g_Engine.mapname).ToLowercase() + ".txt";
+		string fpath = "scripts/maps/ClassicModeDeluxe/gmr/" + string(g_Engine.mapname).ToLowercase() + ".txt";
 		File@ f = g_FileSystem.OpenFile( fpath, OpenFile::READ );
 		if( f is null or !f.IsOpen())
 		{
