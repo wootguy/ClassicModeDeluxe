@@ -1,7 +1,7 @@
 @echo off
 cls
 
-echo WARNING: Existing models/sounds/sprites/cfgs will be overwritten!
+echo WARNING: Existing models/sounds/sprites/cfgs/scripts will be overwritten!
 echo.
 
 pause
@@ -17,6 +17,10 @@ echo.
 
 echo Copying sprites...
 xcopy /i/e/y/q sprites ..\..\..\sprites
+echo.
+
+echo Copying scripts...
+xcopy /i/e/y/q scripts ..\..\..\scripts
 echo.
 
 echo Copying default_map_settings.cfg ...
