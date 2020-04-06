@@ -21,6 +21,14 @@
 
 namespace ClassicModeDeluxe {
 
+	// for models/sounds/sprites
+	// Note: When changing this, remember to also change:
+	//	- sounds/cm_v?/weapons.txt
+	//	- sprites/cm_v?/weapon_9mmar.txt
+	//  - models/cm_v?/w_m40a1.mdl			(reload sounds)
+	//  - models/cm_v?/op4/w_m40a1.mdl		(reload sounds)
+	string cm_folder = "cm_v1";
+
 	enum map_types {
 		MAP_HALF_LIFE = 0,
 		MAP_OPPOSING_FORCE = 1,
@@ -52,9 +60,9 @@ namespace ClassicModeDeluxe {
 	dictionary bshift_force_replace;
 	dictionary op4_force_replace;
 	
-	string replacementModelPath = "models/cm_v1/";
-	string replacementSpritePath = "sprites/cm_v1/";
-	string replacementSoundPath = "cm_v1/";
+	string replacementModelPath = "models/" + cm_folder + "/";
+	string replacementSpritePath = "sprites/" + cm_folder + "/";
+	string replacementSoundPath = cm_folder + "/";
 	
 	array<uint64> lastWeapons; // weapon states for all players (have/not have)
 	array<array<EHandle>> satchels; // active satchel
@@ -321,7 +329,7 @@ namespace ClassicModeDeluxe {
 			return;
 			
 		if (wep.pev.classname == "weapon_9mmAR")
-			wep.KeyValue("CustomSpriteDir", "cm_v1");
+			wep.KeyValue("CustomSpriteDir", cm_folder);
 			
 		//println("Checking " + wep.pev.classname);
 		
@@ -494,7 +502,7 @@ namespace ClassicModeDeluxe {
 		if (@wep != null)
 		{
 			if (wep.pev.classname == "weapon_9mmAR")
-				wep.KeyValue("CustomSpriteDir", "cm_v1");
+				wep.KeyValue("CustomSpriteDir", cm_folder);
 			g_Scheduler.SetTimeout("ProcessWeapon", 0, EHandle(ent));
 			return HOOK_CONTINUE;
 		}
@@ -777,7 +785,7 @@ namespace ClassicModeDeluxe {
 						{
 							// update uzi third-person model when toggling between dual-weild
 							wep.pev.colormap = wep.m_fIsAkimbo ? 1 : 0;
-							if (int(string(plr.pev.weaponmodel).Find("cm_v1")) != -1)
+							if (int(string(plr.pev.weaponmodel).Find(cm_folder)) != -1)
 							{
 								if (wep.m_fIsAkimbo)
 									plr.pev.weaponmodel = replacementModelPath + "p_2uzis.mdl";
