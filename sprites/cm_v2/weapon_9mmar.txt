@@ -1,6 +1,6 @@
 6
-weapon				640		cm_v1/640hud1	0	137	170	45
-weapon_s			640		cm_v1/640hud4	0	137	170	45
+weapon				640		cm_v2/640hud1	0	137	170	45
+weapon_s			640		cm_v2/640hud4	0	137	170	45
 ammo				640		640hud7		0	60	24	24
 ammo2				640		640hud7		48	60	24	24
 crosshair			640		crosshairs	0	48	24	24
