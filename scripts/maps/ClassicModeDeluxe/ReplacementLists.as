@@ -295,6 +295,7 @@ namespace ClassicModeDeluxe {
 		op4_weapons["weapon_sporelauncher"] = true;
 		op4_weapons["weapon_m249"] = true;
 		op4_weapons["weapon_pipewrench"] = true;
+		op4_weapons["weapon_crowbar"] = true;
 		op4_weapons["weapon_minigun"] = true;
 		
 		bshift_weapons["weapon_9mmAR"] = true;
