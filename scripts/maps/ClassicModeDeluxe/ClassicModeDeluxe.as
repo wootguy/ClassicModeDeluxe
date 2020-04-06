@@ -27,7 +27,7 @@ namespace ClassicModeDeluxe {
 	//	- sprites/cm_v?/weapon_9mmar.txt
 	//  - models/cm_v?/w_m40a1.mdl			(reload sounds)
 	//  - models/cm_v?/op4/w_m40a1.mdl		(reload sounds)
-	string cm_folder = "cm_v1";
+	string cm_folder = "cm_v2";
 
 	enum map_types {
 		MAP_HALF_LIFE = 0,
@@ -67,7 +67,7 @@ namespace ClassicModeDeluxe {
 	array<uint64> lastWeapons; // weapon states for all players (have/not have)
 	array<array<EHandle>> satchels; // active satchel
 	
-	// keep this in sync with sound/cm_v1/weapons.txt
+	// keep this in sync with sound/cm_v?/weapons.txt
 	array<string> replacedSounds = {
 		"weapons/sniper_fire.wav",
 		"weapons/uzi/fire_both1.wav",
