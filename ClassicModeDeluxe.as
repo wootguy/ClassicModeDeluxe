@@ -199,12 +199,17 @@ void MapInit()
 	classicTrigger.Think();
 	g_EntityFuncs.FireTargets("ClassicModeDeluxeTrigger", classicTrigger, classicTrigger, USE_ON, 0.0f);
 	
-	brokenInstall = classicTrigger.pev.renderfx != 1;
-	if (brokenInstall) {
-		println("ClassicModeDeluxe: Map script failed to load. Did you install the custom default_map_settings.cfg?");
-	}
+	bool restartRequired = classicTrigger.pev.renderfx == 2;
+	brokenInstall = classicTrigger.pev.renderfx != 1 && !restartRequired;
 	
 	g_EntityFuncs.Remove(classicTrigger);
+	
+	if (brokenInstall) {
+		println("ClassicModeDeluxe: Map script failed to load. Did you install the custom default_map_settings.cfg?");
+	} else if (restartRequired) {
+		println("ClassicModeDeluxe: Map script loaded. Restarting map to toggle classic mode.");
+		g_EngineFuncs.ChangeLevel(g_Engine.mapname);
+	}	
 }
 
 void MapActivate()

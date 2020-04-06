@@ -95,13 +95,15 @@ namespace ClassicModeDeluxe {
 		
 		if (isClassicMap != g_ClassicMode.IsEnabled())
 		{
+			caller.pev.renderfx = 2; // tell the plugin that script loaded successfully, but the map needs to restart
 			g_ClassicMode.ResetState();
 			g_ClassicMode.SetEnabled(isClassicMap);
-			g_EngineFuncs.ChangeLevel(g_Engine.mapname);
 			return;
+		} else {
+			caller.pev.renderfx = 1; // tell the plugin that the script loaded successfully
 		}
 		
-		caller.pev.renderfx = 1; // tell the plugin that we loaded successfully
+		
 	}
 	
 	void MapActivate(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
