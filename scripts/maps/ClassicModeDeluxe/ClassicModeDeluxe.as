@@ -441,7 +441,11 @@ namespace ClassicModeDeluxe {
 				plr.pev.viewmodel = vmodel;
 			if (pmodel.Length() > 0)
 				plr.pev.weaponmodel = pmodel;
-		}		
+				
+			if (!plr.IsAlive()) {
+				activeWep.Holster();
+			}
+		}
 	}
 	
 	void ProcessMonstersByClass(string cname)
