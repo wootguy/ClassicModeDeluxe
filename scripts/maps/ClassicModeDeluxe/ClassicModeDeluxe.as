@@ -518,8 +518,19 @@ namespace ClassicModeDeluxe {
 		entvars_t@ pevInflictor = info.pInflictor !is null ? info.pInflictor.pev : null;
 		entvars_t@ pevAttacker = info.pAttacker !is null ? info.pAttacker.pev : null;
 		
-		if (info.pInflictor !is null and plr !is null and plr.IRelationship(info.pInflictor) <= R_NO)
-			return HOOK_CONTINUE; // don't take damage from other players or ally monsters
+		if (info.pInflictor !is null and plr !is null) {
+			if (plr.IRelationship(info.pInflictor) <= R_NO) {
+				return HOOK_CONTINUE; // don't take damage from other players or ally monsters
+			}
+			
+			if (!info.pInflictor.IsPlayer()) {
+				CBaseEntity@ owner = g_EntityFuncs.Instance(info.pInflictor.pev.owner);
+				if (plr.IRelationship(owner) <= R_NO) {
+					return HOOK_CONTINUE; // don't take damage from things another player owns (e.g. hornets)
+				}
+			}
+		}
+			
 		
 		HalfLifeTakeDamage(plr, pevInflictor, pevAttacker, info.flDamage, info.bitsDamageType);
 		info.flDamage = 0; // bypass sven's damage logic
