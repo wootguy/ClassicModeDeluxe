@@ -242,23 +242,45 @@ namespace ClassicModeDeluxe {
 					modelReplacements.get(model, replacement);
 			}
 			
-			
-			// update body groups
-			int newBody = 0;
-			int mdlIndex = g_ModelFuncs.ModelIndex(replacement);
-			for (int i = 0; i < 8; i++)
-				newBody |= g_ModelFuncs.SetBodygroup(mdlIndex, newBody, i, mon.GetBodygroup(i));
-			
-			if (mon.pev.classname == "monster_human_grunt") // grunt uses diff bodys for things, but somehow works without scripts
+
+			// sven has more weapons and heads and so bodygroups are different from the hlclassic model
+			if (mon.pev.classname == "monster_human_grunt") 
 			{
-				if (mon.pev.weapons & 1 != 0)
-					newBody |= g_ModelFuncs.SetBodygroup( mdlIndex, newBody, 2, 4); // mp5
-				if (mon.pev.weapons & 64 != 0)
-					newBody |= g_ModelFuncs.SetBodygroup( mdlIndex, newBody, 2, 3); // rpg
-				if (mon.pev.weapons & 128 != 0)
-					newBody |= g_ModelFuncs.SetBodygroup( mdlIndex, newBody, 2, 5); // sniper
+				const int OLD_HEAD_GROUPS = 5;
+				const int OLD_WEP_GROUPS = 3;
+				const int NEW_HEAD_GROUPS = 5;
+				const int NEW_WEP_GROUPS = 6;
+				
+				// This doesn't work. By the time the built-in classic mode replaces the model the group info is lost.
+				// So, all mp5 grunts will have the gas mask.
+				int oldHeadGroup = mon.pev.body / (OLD_HEAD_GROUPS+OLD_WEP_GROUPS);
+				
+				int headGroup = 0;
+				int wepGroup = 0;
+				
+				// head group depends on weapons, and also sometimes the game forces head group 1 for squad leaders(?)
+				if (mon.pev.weapons & 4 != 0) {
+					headGroup = 3; // always has cigar
+					mon.pev.skin = 1; // always black
+				}
+				else if (mon.pev.weapons & 8 != 0) {
+					wepGroup = 1; // shotgun
+					headGroup = 2; // always has ski mask
+				}
+				else if (mon.pev.weapons & 64 != 0) {
+					wepGroup = 3; // rpg
+					headGroup = 4; // always has helmet + goggles off
+				}
+				else if (mon.pev.weapons & 128 != 0) {
+					wepGroup = 5; // sniper
+					headGroup = 4; // always has helmet + goggles off
+				} else {
+					// mp5 grunt is the only one that respects the head set by the mapper
+					headGroup = oldHeadGroup;
+				}
+
+				mon.pev.body = wepGroup*NEW_HEAD_GROUPS + headGroup;
 			}
-			mon.pev.body = newBody;
 				
 			//println("ClassicModeDeluxe(m): Replacing " + model + " -> " + replacement);
 			
