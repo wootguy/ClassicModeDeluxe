@@ -89,6 +89,8 @@ namespace ClassicModeDeluxe {
 			g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @PlayerTakeDamage );
 			
 			g_ClassicMode.EnableMapSupport();
+			
+			// letting classic mode restart the map works, but restarting manually in the plugin is faster.
 			g_ClassicMode.SetShouldRestartOnChange(false);	
 		
 			array<ItemMapping@> itemMappings = { 
