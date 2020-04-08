@@ -28,6 +28,7 @@ enum MODES {
 
 bool g_basic_mode = false;
 bool brokenInstall = false;
+bool restartRequired = false;
 
 const float DEFAULT_MAX_SPEED_SVEN = 270;
 const float DEFAULT_MAX_SPEED_HL = 320;
@@ -199,17 +200,14 @@ void MapInit()
 	classicTrigger.Think();
 	g_EntityFuncs.FireTargets("ClassicModeDeluxeTrigger", classicTrigger, classicTrigger, USE_ON, 0.0f);
 	
-	bool restartRequired = classicTrigger.pev.renderfx == 2;
+	restartRequired = classicTrigger.pev.renderfx == 2;
 	brokenInstall = classicTrigger.pev.renderfx != 1 && !restartRequired;
 	
 	g_EntityFuncs.Remove(classicTrigger);
 	
 	if (brokenInstall) {
 		println("ClassicModeDeluxe: Map script failed to load. Did you install the custom default_map_settings.cfg?");
-	} else if (restartRequired) {
-		println("ClassicModeDeluxe: Map script loaded. Restarting map to toggle classic mode.");
-		g_EngineFuncs.ChangeLevel(g_Engine.mapname);
-	}	
+	}
 }
 
 void MapActivate()
@@ -234,6 +232,12 @@ void MapActivate()
 		keys["targetname"] = "game_playerdie";
 		keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::PlayerDie";
 		g_EntityFuncs.CreateEntity("trigger_script", keys, true);
+	}
+	
+	// this has to be in MapActivate or later or else changelevels break on Linux when RandMap is installed.
+	if (restartRequired) {
+		println("ClassicModeDeluxe: Map script loaded. Restarting map to toggle classic mode.");
+		g_EngineFuncs.ChangeLevel(g_Engine.mapname);
 	}
 }
 
