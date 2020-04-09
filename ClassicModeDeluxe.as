@@ -29,6 +29,9 @@ enum MODES {
 bool g_basic_mode = false;
 bool brokenInstall = false;
 bool restartRequired = false;
+bool cantToggleClassicMode = false;
+
+string lastRestartMap = ""; // last map that had to be restarted because mode changed
 
 const float DEFAULT_MAX_SPEED_SVEN = 270;
 const float DEFAULT_MAX_SPEED_HL = 320;
@@ -212,6 +215,22 @@ void MapInit()
 
 void MapActivate()
 {
+	// this has to be in MapActivate or later or else changelevels break on Linux when RandMap is installed.
+	if (restartRequired) {
+		if (lastRestartMap == g_Engine.mapname) {
+			cantToggleClassicMode = true;
+			println("ClassicModeDeluxe: Map script loaded, but something is preventing classic mode from being toggled on this map.");
+			return;
+		}
+		println("ClassicModeDeluxe: Map script loaded. Restarting map to toggle classic mode.");
+		g_EngineFuncs.ChangeLevel(g_Engine.mapname);
+		lastRestartMap = g_Engine.mapname;
+		return;
+	} else {
+		lastRestartMap = "";
+		cantToggleClassicMode = false;
+	}
+	
 	if (isClassicMap and !g_basic_mode)
 	{
 		dictionary keys;
@@ -232,12 +251,6 @@ void MapActivate()
 		keys["targetname"] = "game_playerdie";
 		keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::PlayerDie";
 		g_EntityFuncs.CreateEntity("trigger_script", keys, true);
-	}
-	
-	// this has to be in MapActivate or later or else changelevels break on Linux when RandMap is installed.
-	if (restartRequired) {
-		println("ClassicModeDeluxe: Map script loaded. Restarting map to toggle classic mode.");
-		g_EngineFuncs.ChangeLevel(g_Engine.mapname);
 	}
 }
 
@@ -260,7 +273,7 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 				string arg = args[1].ToLowercase();
 				if (arg == "version")
 				{
-					g_PlayerFuncs.SayText(plr, "Classic mode version: v8\n");
+					g_PlayerFuncs.SayText(plr, "Classic mode version: v8.3\n");
 					return true;
 				}
 				if (g_PlayerFuncs.AdminLevel(plr) < ADMIN_YES)
@@ -319,9 +332,13 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 							msg += "This is a classic map.";
 						else
 							msg += "This is a modern map.";
-				}		
+				}
 				
 				g_PlayerFuncs.SayText(plr, msg + "\n");
+				
+				if (cantToggleClassicMode) {
+					g_PlayerFuncs.SayText(plr, "ERROR: Something is preventing classic mode from being toggled on this map :<\n");
+				}
 				return true;
 			}
 		}
