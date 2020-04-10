@@ -156,6 +156,10 @@ void MapInit()
 	if (ignore_maps.exists(g_Engine.mapname)) {
 		return;
 	}
+	if (cantToggleClassicMode && g_Engine.mapname == lastRestartMap) {
+		println("ClassicModeDeluxe: Something is preventing classic mode from being toggled on this map (probably the mp_survival_mode cvar).");
+		return;
+	}
 	
 	// classic mode votes will only restart the map but not change anything. Might as well disable it.
 	g_EngineFuncs.ServerCommand("mp_voteclassicmoderequired -1;\n");
@@ -211,24 +215,29 @@ void MapInit()
 	if (brokenInstall) {
 		println("ClassicModeDeluxe: Map script failed to load. Did you install the custom default_map_settings.cfg?");
 	}
+	
+	cantToggleClassicMode = false;
+	if (restartRequired) {
+		if (lastRestartMap == g_Engine.mapname) {
+			cantToggleClassicMode = true;
+		}
+		
+		lastRestartMap = g_Engine.mapname;
+	} else {
+		lastRestartMap = "";
+	}
 }
 
 void MapActivate()
 {
+	if (cantToggleClassicMode)
+		return;
+
 	// this has to be in MapActivate or later or else changelevels break on Linux when RandMap is installed.
 	if (restartRequired) {
-		if (lastRestartMap == g_Engine.mapname) {
-			cantToggleClassicMode = true;
-			println("ClassicModeDeluxe: Map script loaded, but something is preventing classic mode from being toggled on this map.");
-			return;
-		}
 		println("ClassicModeDeluxe: Map script loaded. Restarting map to toggle classic mode.");
 		g_EngineFuncs.ChangeLevel(g_Engine.mapname);
-		lastRestartMap = g_Engine.mapname;
 		return;
-	} else {
-		lastRestartMap = "";
-		cantToggleClassicMode = false;
 	}
 	
 	if (isClassicMap and !g_basic_mode)
@@ -316,8 +325,13 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 			}
 			else
 			{
+				int mapMode = int(g_EngineFuncs.CVarGetFloat("mp_survival_mode"));
+				int pluginMode = cvar_mode.GetInt();
+				bool shouldClassicBeOn = (pluginMode == MODE_AUTO && isClassicMap) || pluginMode == MODE_ALWAYS_ON;
+				bool isForcedOpposite = mapMode > 0 != shouldClassicBeOn;
+				
 				string msg = "Classic mode is ";
-				switch(cvar_mode.GetInt())
+				switch(pluginMode)
 				{
 					case MODE_ALWAYS_OFF:
 						msg += "OFF";
@@ -327,18 +341,26 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 						break;
 					case MODE_AUTO:
 					default:
-						msg += "AUTO. ";
+						msg += "AUTO";
 						if (isClassicMap)
-							msg += "This is a classic map.";
+							msg += ". This is a classic map";
 						else
-							msg += "This is a modern map.";
+							msg += ". This is a modern map";
+							
+						if (!cantToggleClassicMode || !isForcedOpposite) {
+							msg += ".";
+						}
+				}
+				
+				if (cantToggleClassicMode && isForcedOpposite) {
+					msg += ", but something is forcing classic mode to be " + (mapMode > 0 ? "ON" : "OFF");
+					if (pluginMode != MODE_AUTO) {
+						msg += " in this map";
+					}
+					msg += ".";
 				}
 				
 				g_PlayerFuncs.SayText(plr, msg + "\n");
-				
-				if (cantToggleClassicMode) {
-					g_PlayerFuncs.SayText(plr, "ERROR: Something is preventing classic mode from being toggled on this map :<\n");
-				}
 				return true;
 			}
 		}
