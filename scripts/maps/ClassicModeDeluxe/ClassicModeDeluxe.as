@@ -83,15 +83,17 @@ namespace ClassicModeDeluxe {
 		isClassicMap = mapInfo & 1 != 0;
 		mapType = mapInfo >> 1;
 		
+		// required for linux dedicated. Linux won't automatically restart for classic mode unlike windows/listen servers.
+		// this unfortunately can cause restart loops, but there is a failsafe for that and it's fixable by updating
+		// classic_maps.txt or ignore_maps.txt.
+		g_ClassicMode.SetShouldRestartOnChange(true);
+		
 		if (isClassicMap)
 		{
 			g_Hooks.RegisterHook( Hooks::Game::EntityCreated, @EntityCreated );
 			g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @PlayerTakeDamage );
 			
 			g_ClassicMode.EnableMapSupport();
-			
-			// letting classic mode restart the map works, but restarting manually in the plugin is faster.
-			g_ClassicMode.SetShouldRestartOnChange(false);	
 		
 			array<ItemMapping@> itemMappings = { 
 				ItemMapping( "weapon_m16", "weapon_9mmAR" ),
@@ -105,15 +107,11 @@ namespace ClassicModeDeluxe {
 		
 		if (isClassicMap != g_ClassicMode.IsEnabled())
 		{
-			caller.pev.renderfx = 2; // tell the plugin that script loaded successfully, but the map needs to restart
 			g_ClassicMode.ResetState();
 			g_ClassicMode.SetEnabled(isClassicMap);
-			return;
-		} else {
-			caller.pev.renderfx = 1; // tell the plugin that the script loaded successfully
 		}
 		
-		
+		caller.pev.renderfx = 1; // tell the plugin that the script loaded successfully
 	}
 	
 	void MapActivate(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
