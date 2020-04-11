@@ -12,6 +12,7 @@ ba_security1
 ba_security2
 ba_teleport1
 ba_teleport2
+ba_tram1
 ba_tram2
 ba_tram3
 ba_xen1
