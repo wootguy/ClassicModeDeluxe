@@ -31,10 +31,8 @@ enum MODES {
 
 bool g_basic_mode = false;
 bool brokenInstall = false;
-bool restartRequired = false;
-bool cantToggleClassicMode = false;
 
-string lastRestartMap = ""; // last map that had to be restarted because mode changed
+bool cantToggleClassicMode = false;
 
 const float DEFAULT_MAX_SPEED_SVEN = 270;
 const float DEFAULT_MAX_SPEED_HL = 320;
@@ -48,6 +46,21 @@ string skill2_file = "skill_hl_hard.cfg";
 dictionary default_skill_settings;
 dictionary skill1_settings;
 dictionary skill2_settings;
+
+class MapStartEvent
+{
+	string map;
+	DateTime time;
+	
+	MapStartEvent(string map, DateTime time) {
+		this.map = map;
+		this.time = time;
+	}
+	
+	MapStartEvent() {}
+}
+
+array<MapStartEvent> g_map_start_history;
 
 dictionary loadMapList(string fpath)
 {
@@ -172,22 +185,58 @@ void setClassicMapVar() {
 		isClassicMap = false;
 }
 
+int g_restart_loop_count = 6; // map starts required to detect a restart loop (note that classic maps start 2x on level change)
+float g_restart_loop_secs_max = 30; // X restarts faster than Y seconds means it's looping
+
+
+// There's a chance that the built-in classic mode or some script fights this plugin and restarts the map a few
+// seconds after MapActivate to undo the classic mode change. This should detect that.
+bool is_map_restarting_endlessly() {
+	g_map_start_history.insertAt(0, MapStartEvent(g_Engine.mapname, DateTime()));
+	
+	if (int(g_map_start_history.size()) < g_restart_loop_count) {
+		return false;
+	}
+	else if (int(g_map_start_history.size()) > g_restart_loop_count) {
+		g_map_start_history.removeLast();
+	}
+	
+	int totalMapStarts = 1;
+	int totalDeltaSeconds = 0;
+	string mostRecentMap = g_map_start_history[0].map;
+	
+	for (int i = 1; i < g_restart_loop_count; i++) {		
+		if (mostRecentMap != g_map_start_history[i].map) {
+			break;
+		}
+		
+		totalMapStarts++;
+		totalDeltaSeconds += (g_map_start_history[i-1].time - g_map_start_history[i].time).GetSeconds();
+	}
+	
+	//println("TOTAL MAP STARTS " + totalMapStarts + " IN " + totalDeltaSeconds + " SECS");
+	
+	return totalMapStarts >= g_restart_loop_count && totalDeltaSeconds < g_restart_loop_secs_max;
+}
+
 void MapInit()
 {
 	isIgnoredMap = ignore_maps.exists(g_Engine.mapname);
 	if (isIgnoredMap) {
 		return;
 	}
-	if (cantToggleClassicMode && g_Engine.mapname == lastRestartMap) {
-		println("ClassicModeDeluxe: Something is preventing classic mode from being toggled on this map (probably the mp_survival_mode cvar).");
+	
+	setClassicMapVar();
+	
+	if (is_map_restarting_endlessly()) {
+		cantToggleClassicMode = true;
+		println("ClassicModeDeluxe: RESTART LOOP DETECTED! Something is preventing classic mode from being toggled on this map. Consider updating classic_maps.txt or ignore_maps.txt");
 		return;
 	}
 	
 	// classic mode votes will only restart the map but not change anything. Might as well disable it.
 	g_EngineFuncs.ServerCommand("mp_voteclassicmoderequired -1;\n");
 	g_EngineFuncs.ServerExecute();
-
-	setClassicMapVar();
 	
 	if (isClassicMap)
 	{
@@ -215,32 +264,17 @@ void MapInit()
 	classicTrigger.Think();
 	g_EntityFuncs.FireTargets("ClassicModeDeluxeTrigger", classicTrigger, classicTrigger, USE_ON, 0.0f);
 	
-	restartRequired = classicTrigger.pev.renderfx == 2;
-	brokenInstall = classicTrigger.pev.renderfx != 1 && !restartRequired;
+	brokenInstall = classicTrigger.pev.renderfx != 1;
 	
 	g_EntityFuncs.Remove(classicTrigger);
 	
 	if (brokenInstall) {
 		println("ClassicModeDeluxe: Map script failed to load. Did you install the custom default_map_settings.cfg?");
 	}
-	
-	cantToggleClassicMode = false;
-	if (restartRequired) {
-		if (lastRestartMap == g_Engine.mapname) {
-			cantToggleClassicMode = true;
-		}
-		
-		lastRestartMap = g_Engine.mapname;
-	} else {
-		lastRestartMap = "";
-	}
 }
 
 void MapActivate()
 {
-	if (cantToggleClassicMode)
-		return;
-
 	if (!g_initialized) {
 		g_classic_mode = cvar_initial_mode.GetInt();
 		g_initialized = true;
@@ -250,20 +284,8 @@ void MapActivate()
 		
 		if (oldClassic != isClassicMap) {
 			// restart required because not all CVars are loaded until MapActivate
-			println("ClassicModeDeluxe: loaded mode CVar. Restarting map to apply changes.");
-			lastRestartMap = g_Engine.mapname;
-			g_EngineFuncs.ChangeLevel(g_Engine.mapname);
-			return;
+			println("ClassicModeDeluxe: loaded mode CVar. Changes will take affect in the next map.");
 		}
-		else 
-			println("ClassicModeDeluxe: loaded mode CVar. No restart required.");
-	}
-
-	// this has to be in MapActivate or later or else changelevels break on Linux when RandMap is installed.
-	if (restartRequired) {
-		println("ClassicModeDeluxe: Map script loaded. Restarting map to toggle classic mode.");
-		g_EngineFuncs.ChangeLevel(g_Engine.mapname);
-		return;
 	}
 	
 	if (isClassicMap and !g_basic_mode)
@@ -308,7 +330,7 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 				string arg = args[1].ToLowercase();
 				if (arg == "version")
 				{
-					g_PlayerFuncs.SayText(plr, "Classic mode version: v8.3\n");
+					g_PlayerFuncs.SayText(plr, "Classic mode version: v8.4\n");
 					return true;
 				}
 				if (g_PlayerFuncs.AdminLevel(plr) < ADMIN_YES)
@@ -350,11 +372,8 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 					g_PlayerFuncs.SayText(plr, ".cm version = show plugin version\n");
 				}
 				
-				// allow changing on current map
-				if (oldClassicMode != g_classic_mode) {
-					cantToggleClassicMode = false;
-					lastRestartMap = "";
-				}
+				// testing different modes shouldn't trigger the restart loop logic
+				g_map_start_history.resize(0);
 				
 				return true;
 			}
