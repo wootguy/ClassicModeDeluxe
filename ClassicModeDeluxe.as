@@ -186,7 +186,7 @@ void setClassicMapVar() {
 }
 
 int g_restart_loop_count = 6; // map starts required to detect a restart loop (note that classic maps start 2x on level change)
-float g_restart_loop_secs_max = 30; // X restarts faster than Y seconds means it's looping
+float g_restart_loop_secs_max = 120; // X restarts faster than Y seconds means it's looping
 
 
 // There's a chance that the built-in classic mode or some script fights this plugin and restarts the map a few
@@ -330,7 +330,7 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 				string arg = args[1].ToLowercase();
 				if (arg == "version")
 				{
-					g_PlayerFuncs.SayText(plr, "Classic mode version: v8.4\n");
+					g_PlayerFuncs.SayText(plr, "Classic mode version: v8.5\n");
 					return true;
 				}
 				if (g_PlayerFuncs.AdminLevel(plr) < ADMIN_YES)
