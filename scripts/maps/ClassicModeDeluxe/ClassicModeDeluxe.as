@@ -16,6 +16,7 @@
 // disable full-auto for shotgun/mp5 on npcs (custom npcs are missing features and will probably break sequences/triggers)
 // custom soundlists for the HL grunt are ignored. AS can't get soundlist keyvalues to fix that.
 // custom weapons can fix some issues/sounds but are laggy which is worse
+// Health/ammo HUD
 
 #include "ReplacementLists"
 
@@ -23,15 +24,15 @@ namespace ClassicModeDeluxe {
 
 	// for models/sounds/sprites
 	// Note: When changing this, remember to also change:
-	//	- sounds/cm_v?/weapons.txt
-	//	- sprites/cm_v?/weapon_9mmar.txt
-	//  - models/cm_v?/v_m40a1.mdl					(reload sounds)
-	//  - models/cm_v?/v_desert_eagle.mdl			(reload sounds)
-	//  - models/cm_v?/v_saw.mdl					(reload sounds)
-	//  - models/cm_v?/op4/v_m40a1.mdl				(reload sounds)
-	//  - models/cm_v?/op4/v_desert_eagle.mdl		(reload sounds)
-	//  - models/cm_v?/op4/v_saw.mdl				(reload sounds)
-	string cm_folder = "cm_v2";
+	//    sounds/cm_v?/weapons.txt
+	//    sprites/cm_v?/weapon_9mmar.txt
+	//    models/cm_v?/v_m40a1.mdl					(reload sounds)
+	//    models/cm_v?/v_desert_eagle.mdl			(reload sounds)
+	//    models/cm_v?/v_saw.mdl					(reload sounds)
+	//    models/cm_v?/op4/v_m40a1.mdl				(reload sounds)
+	//    models/cm_v?/op4/v_desert_eagle.mdl		(reload sounds)
+	//    models/cm_v?/op4/v_saw.mdl				(reload sounds)
+	string cm_folder = "cm_v3";
 
 	enum map_types {
 		MAP_HALF_LIFE = 0,

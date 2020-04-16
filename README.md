@@ -44,7 +44,8 @@ as_command cm.fastmove 1
   - Muzzle flashes (requires GMR - not available in scripts)
   - Uzi/Saw bullet casings (requires GMR - not available in scripts)
   - Golden uzi third-person model
-- Some grunts/assassins fire their shotguns/mp5s full-auto.
+  - Health/Ammo HUD
+- Some grunts/assassins still fire their shotguns/mp5s full-auto.
 - Custom soundlists for the HL grunt are ignored. AS can't get soundlist keyvalues to fix that. I don't think any classic map has given grunts custom sounds though.
 
 Let me know if any maps should be added to classic_maps.txt. Some maps made after 4.0 might have been designed for 3.0 and released later. I tried to capture some of those.
