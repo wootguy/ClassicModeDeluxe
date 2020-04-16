@@ -26,9 +26,11 @@ namespace ClassicModeDeluxe {
 	//	- sounds/cm_v?/weapons.txt
 	//	- sprites/cm_v?/weapon_9mmar.txt
 	//  - models/cm_v?/v_m40a1.mdl					(reload sounds)
-	//  - models/cm_v?/op4/v_m40a1.mdl				(reload sounds)
 	//  - models/cm_v?/v_desert_eagle.mdl			(reload sounds)
+	//  - models/cm_v?/v_saw.mdl					(reload sounds)
+	//  - models/cm_v?/op4/v_m40a1.mdl				(reload sounds)
 	//  - models/cm_v?/op4/v_desert_eagle.mdl		(reload sounds)
+	//  - models/cm_v?/op4/v_saw.mdl				(reload sounds)
 	string cm_folder = "cm_v2";
 
 	enum map_types {
