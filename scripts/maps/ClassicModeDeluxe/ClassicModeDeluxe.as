@@ -472,7 +472,7 @@ namespace ClassicModeDeluxe {
 
 		// force model updates since the wep is already deployed
 		CBasePlayerWeapon@ activeWep = cast<CBasePlayerWeapon@>(plr.m_hActiveItem.GetEntity());
-		if (activeWep.entindex() == wep.entindex())
+		if (activeWep !is null && activeWep.entindex() == wep.entindex())
 		{
 			if (vmodel.Length() > 0)
 				plr.pev.viewmodel = vmodel;
