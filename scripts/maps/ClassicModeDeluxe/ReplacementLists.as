@@ -297,6 +297,11 @@ namespace ClassicModeDeluxe {
 		op4_weapons["weapon_pipewrench"] = true;
 		op4_weapons["weapon_crowbar"] = true;
 		op4_weapons["weapon_minigun"] = true;
+		op4_weapons["weapon_uzi"] = true;
+		op4_weapons["weapon_gauss"] = true;
+		if (mapType == MAP_OPPOSING_FORCE) {
+			modelReplacements["models/p_crowbar.mdl"] = "models/opfor/p_knife.mdl";
+		}
 		
 		bshift_weapons["weapon_9mmAR"] = true;
 		bshift_weapons["weapon_9mmhandgun"] = true;
