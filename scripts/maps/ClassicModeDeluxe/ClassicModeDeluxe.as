@@ -225,8 +225,10 @@ namespace ClassicModeDeluxe {
 			if (should_force_replace)
 			{
 				force_replace.get(mon.pev.model, replacement);
-				if (mapType == MAP_BLUE_SHIFT and cname == "monster_scientist_dead")
-					mon.pev.sequence += 1; // TODO: edit the model you lazy fuck
+				if (mapType == MAP_BLUE_SHIFT and (cname == "monster_scientist_dead" || cname == "monster_hgrunt_dead")) {
+					mon.pev.sequence += 1; // TODO: edit the models you lazy fuck
+					mon.pev.body = 0; // TODO: can be customized by mapper, but this works for bshift
+				}
 			}
 			else
 			{
@@ -285,7 +287,7 @@ namespace ClassicModeDeluxe {
 
 				mon.pev.body = wepGroup*NEW_HEAD_GROUPS + headGroup;
 			}
-				
+			
 			//println("ClassicModeDeluxe(m): Replacing " + model + " -> " + replacement);
 			
 			int oldSequence = mon.pev.sequence;
