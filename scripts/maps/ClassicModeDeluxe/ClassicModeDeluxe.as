@@ -245,9 +245,10 @@ namespace ClassicModeDeluxe {
 					modelReplacements.get(model, replacement);
 			}
 			
-
 			// sven has more weapons and heads and so bodygroups are different from the hlclassic model
-			if (mon.pev.classname == "monster_human_grunt") 
+			if (cname == "monster_human_grunt" 
+				&& (replacement == "models/" + cm_folder + "/hgrunt.mdl" ||
+					replacement == "models/" + cm_folder + "/hgruntf.mdl"))
 			{
 				const int OLD_HEAD_GROUPS = 5;
 				const int OLD_WEP_GROUPS = 3;
