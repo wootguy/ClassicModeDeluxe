@@ -74,6 +74,8 @@ projectg5
 projectg6
 projectg7
 projectg8
+projectgscrt1a
+projectgscrt1b
 storaged
 suspension
 op4_sahara
