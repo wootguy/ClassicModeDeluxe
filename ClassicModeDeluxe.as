@@ -171,7 +171,7 @@ void setClassicMapVar() {
 	isClassicMap = classic_maps.exists(g_Engine.mapname);
 	
 	mapType = MAP_HALF_LIFE;
-	if (isClassicMap)
+	if (isClassicMap or g_classic_mode == MODE_ALWAYS_ON)
 	{
 		if (op4_maps.exists(g_Engine.mapname))
 			mapType = MAP_OPPOSING_FORCE;
@@ -330,7 +330,7 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 				string arg = args[1].ToLowercase();
 				if (arg == "version")
 				{
-					g_PlayerFuncs.SayText(plr, "Classic mode version: v9\n");
+					g_PlayerFuncs.SayText(plr, "Classic mode version: v10 WIP\n");
 					return true;
 				}
 				if (g_PlayerFuncs.AdminLevel(plr) < ADMIN_YES)
