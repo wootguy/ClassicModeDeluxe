@@ -306,7 +306,6 @@ namespace ClassicModeDeluxe {
 		bshift_weapons["weapon_9mmAR"] = true;
 		bshift_weapons["weapon_9mmhandgun"] = true;
 		bshift_weapons["weapon_357"] = true;
-		bshift_weapons["weapon_crowbar"] = true;
 		bshift_weapons["weapon_medkit"] = true;
 		bshift_weapons["weapon_shotgun"] = true;
 		bshift_weapons["weapon_crossbow"] = true;
@@ -316,6 +315,16 @@ namespace ClassicModeDeluxe {
 		bshift_weapons["weapon_satchel"] = true;
 		bshift_weapons["weapon_tripmine"] = true;
 		bshift_weapons["weapon_snark"] = true;
+		bshift_weapons["weapon_displacer"] = true;
+		bshift_weapons["weapon_eagle"] = true;
+		bshift_weapons["weapon_sniperrifle"] = true;
+		bshift_weapons["weapon_sporelauncher"] = true;
+		bshift_weapons["weapon_m249"] = true;
+		bshift_weapons["weapon_pipewrench"] = true;
+		bshift_weapons["weapon_crowbar"] = true;
+		bshift_weapons["weapon_minigun"] = true;
+		bshift_weapons["weapon_uzi"] = true;
+		bshift_weapons["weapon_gauss"] = true;
 		
 		// sven's opfor zombie has a broken head hitbox
 		op4_force_replace["models/opfor/zombie_soldier.mdl"] = replacementModelPath + "zombie_soldier.mdl";
