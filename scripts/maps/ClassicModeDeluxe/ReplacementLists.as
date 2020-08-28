@@ -277,54 +277,32 @@ namespace ClassicModeDeluxe {
 		classicItems["item_longjump"] = "longjump";
 		classicItems["item_suit"] = "suit";
 		
-		op4_weapons["weapon_9mmAR"] = true;
-		op4_weapons["weapon_9mmhandgun"] = true;
-		op4_weapons["weapon_357"] = true;
-		op4_weapons["weapon_medkit"] = true;
-		op4_weapons["weapon_shotgun"] = true;
-		op4_weapons["weapon_crossbow"] = true;
-		op4_weapons["weapon_rpg"] = true;
-		op4_weapons["weapon_egon"] = true;
-		op4_weapons["weapon_handgrenade"] = true;
-		op4_weapons["weapon_satchel"] = true;
-		op4_weapons["weapon_tripmine"] = true;
-		op4_weapons["weapon_snark"] = true;
-		op4_weapons["weapon_displacer"] = true;
-		op4_weapons["weapon_eagle"] = true;
-		op4_weapons["weapon_sniperrifle"] = true;
-		op4_weapons["weapon_sporelauncher"] = true;
-		op4_weapons["weapon_m249"] = true;
-		op4_weapons["weapon_pipewrench"] = true;
-		op4_weapons["weapon_crowbar"] = true;
-		op4_weapons["weapon_minigun"] = true;
-		op4_weapons["weapon_uzi"] = true;
-		op4_weapons["weapon_gauss"] = true;
 		if (mapType == MAP_OPPOSING_FORCE) {
 			modelReplacements["models/p_crowbar.mdl"] = "models/opfor/p_knife.mdl";
 		}
 		
-		bshift_weapons["weapon_9mmAR"] = true;
-		bshift_weapons["weapon_9mmhandgun"] = true;
-		bshift_weapons["weapon_357"] = true;
-		bshift_weapons["weapon_medkit"] = true;
-		bshift_weapons["weapon_shotgun"] = true;
-		bshift_weapons["weapon_crossbow"] = true;
-		bshift_weapons["weapon_rpg"] = true;
-		bshift_weapons["weapon_egon"] = true;
-		bshift_weapons["weapon_handgrenade"] = true;
-		bshift_weapons["weapon_satchel"] = true;
-		bshift_weapons["weapon_tripmine"] = true;
-		bshift_weapons["weapon_snark"] = true;
-		bshift_weapons["weapon_displacer"] = true;
-		bshift_weapons["weapon_eagle"] = true;
-		bshift_weapons["weapon_sniperrifle"] = true;
-		bshift_weapons["weapon_sporelauncher"] = true;
-		bshift_weapons["weapon_m249"] = true;
-		bshift_weapons["weapon_pipewrench"] = true;
-		bshift_weapons["weapon_crowbar"] = true;
-		bshift_weapons["weapon_minigun"] = true;
-		bshift_weapons["weapon_uzi"] = true;
-		bshift_weapons["weapon_gauss"] = true;
+		weapon_names["weapon_9mmAR"] = true;
+		weapon_names["weapon_9mmhandgun"] = true;
+		weapon_names["weapon_357"] = true;
+		weapon_names["weapon_medkit"] = true;
+		weapon_names["weapon_shotgun"] = true;
+		weapon_names["weapon_crossbow"] = true;
+		weapon_names["weapon_rpg"] = true;
+		weapon_names["weapon_egon"] = true;
+		weapon_names["weapon_handgrenade"] = true;
+		weapon_names["weapon_satchel"] = true;
+		weapon_names["weapon_tripmine"] = true;
+		weapon_names["weapon_snark"] = true;
+		weapon_names["weapon_displacer"] = true;
+		weapon_names["weapon_eagle"] = true;
+		weapon_names["weapon_sniperrifle"] = true;
+		weapon_names["weapon_sporelauncher"] = true;
+		weapon_names["weapon_m249"] = true;
+		weapon_names["weapon_pipewrench"] = true;
+		weapon_names["weapon_crowbar"] = true;
+		weapon_names["weapon_minigun"] = true;
+		weapon_names["weapon_uzi"] = true;
+		weapon_names["weapon_gauss"] = true;
 		
 		// sven's opfor zombie has a broken head hitbox
 		op4_force_replace["models/opfor/zombie_soldier.mdl"] = replacementModelPath + "zombie_soldier.mdl";
@@ -488,14 +466,11 @@ namespace ClassicModeDeluxe {
 		
 		if (mapType != MAP_HALF_LIFE)
 		{
-			dictionary weps = op4_weapons;
 			string subfolder;
 			if (mapType == MAP_BLUE_SHIFT)
 			{
 				subfolder = "bshift/";
-				weps = bshift_weapons;
 				force_replace = bshift_force_replace;
-				
 				g_Game.PrecacheModel("models/" + cm_folder + "/bshift/v_satchel_radio.mdl");
 			}
 			if (mapType == MAP_OPPOSING_FORCE)
@@ -505,7 +480,7 @@ namespace ClassicModeDeluxe {
 				g_Game.PrecacheModel("models/" + cm_folder + "/op4/v_satchel_radio.mdl");
 			}
 				
-			keys = weps.getKeys();
+			keys = weapon_names.getKeys();
 			for (uint i = 0; i < keys.size(); i++)
 			{				
 				string defaultModelName;
