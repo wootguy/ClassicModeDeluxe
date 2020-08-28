@@ -22,6 +22,7 @@ namespace ClassicModeDeluxe {
 		while( !f.EOFReached() )
 		{
 			f.ReadLine(line);
+			line.Trim(); // required for linux (strips \r)
 			string model = "models/" + line + ".mdl";		
 			blacklist[model] = true;
 		}
