@@ -26,7 +26,7 @@ namespace ClassicModeDeluxe {
 	// Note: When changing this, remember to also change:
 	//    sounds/cm_v?/weapons.txt
 	//    sprites/cm_v?/weapon_9mmar.txt
-	//    models/cm_v?/v_m40a1.mdl					(reload sounds)
+	//    models/cm_v?/v_m40a1.mdl					(reload+shoot sounds)
 	//    models/cm_v?/v_desert_eagle.mdl			(reload sounds)
 	//    models/cm_v?/v_saw.mdl					(reload sounds)
 	//    models/cm_v?/op4/v_m40a1.mdl				(reload sounds)

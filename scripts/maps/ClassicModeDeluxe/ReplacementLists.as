@@ -532,10 +532,15 @@ namespace ClassicModeDeluxe {
 		g_Game.PrecacheModel("models/blkop_apache.mdl");
 		g_Game.PrecacheModel("models/w_shock.mdl");
 		
-		// precache weapon sound replacements for monsters
+		// precache weapon sound replacements for player weapons and monsters
+		PrecacheSound(replacementSoundPath + "desert_eagle_reload.wav");
+		PrecacheSound(replacementSoundPath + "saw_reload.wav");
+		PrecacheSound(replacementSoundPath + "saw_reload2.wav");
 		PrecacheSound(replacementSoundPath + "sniper_fire.wav");
 		PrecacheSound(replacementSoundPath + "sniper_bolt1.wav");
+		PrecacheSound(replacementSoundPath + "sniper_bolt2.wav");
 		PrecacheSound(replacementSoundPath + "sniper_reload_first_seq.wav");
+		PrecacheSound(replacementSoundPath + "sniper_reload_second_seq.wav");
 		PrecacheSound(replacementSoundPath + "uzi_fire_both1.wav");
 		PrecacheSound(replacementSoundPath + "uzi_fire_both2.wav");
 		PrecacheSound("hlclassic/hgrunt/gr_mgun1.wav");
