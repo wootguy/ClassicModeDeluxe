@@ -56,9 +56,8 @@ namespace ClassicModeDeluxe {
 	dictionary blacklist; // models that shouldn't be replaced because GMR is already replacing them
 	dictionary soundReplacements; // monsters that should have their sounds replaced
 	
-	// themed weapons for specific maps
-	dictionary op4_weapons;
-	dictionary bshift_weapons;
+	// weapon names used for forced replacements in themed maps (op4/bshift/etc.)
+	dictionary weapon_names;
 	
 	// force model replacements for these
 	dictionary force_replace;
@@ -398,15 +397,7 @@ namespace ClassicModeDeluxe {
 		// This isn't needed if the custom model was set on the entity, but there's no way to know if it was
 		// from that or from GMR, so I need to always re-apply custom models if the map uses GMR.
 		
-		bool shouldForceThemedWeapon = false;
-		if (mapType != MAP_HALF_LIFE)
-		{
-			dictionary weps = op4_weapons;
-			if (mapType == MAP_BLUE_SHIFT)
-				weps = bshift_weapons;
-			
-			shouldForceThemedWeapon = weps.exists(cname);
-		}
+		bool shouldForceThemedWeapon = mapType != MAP_HALF_LIFE;
 		
 		bool shouldSwap = false;
 		if (shouldForceThemedWeapon)
