@@ -43,6 +43,7 @@ as_command cm.fastmove 1
   - Footstep sounds
   - Muzzle flashes (requires GMR - not available in scripts)
   - Uzi/Saw bullet casings (requires GMR - not available in scripts)
+  - Rockets
   - Golden uzi third-person model
   - Health/Ammo HUD
 - Some grunts/assassins still fire their shotguns/mp5s full-auto.
