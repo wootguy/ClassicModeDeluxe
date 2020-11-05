@@ -448,6 +448,9 @@ namespace ClassicModeDeluxe {
 		autoReplacementMonsters["monster_sitting_scientist"] = true;
 		autoReplacementMonsters["monster_tentacle"] = true;
 		autoReplacementMonsters["monster_zombie"] = true;
+		autoReplacementMonsters["monster_snark"] = true;
+		autoReplacementMonsters["monster_satchel"] = true;
+		autoReplacementMonsters["monster_handgrenade"] = true;
 
 		array<string> keys = modelReplacements.getKeys();
 		for (uint i = 0; i < keys.size(); i++)
