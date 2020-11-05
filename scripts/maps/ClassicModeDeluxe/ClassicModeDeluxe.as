@@ -397,7 +397,9 @@ namespace ClassicModeDeluxe {
 		// This isn't needed if the custom model was set on the entity, but there's no way to know if it was
 		// from that or from GMR, so I need to always re-apply custom models if the map uses GMR.
 		
-		bool shouldForceThemedWeapon = mapType != MAP_HALF_LIFE;
+		bool shouldForceThemedWeapon = mapType != MAP_HALF_LIFE 
+			&& wep.pev.classname != "weapon_hornetgun"
+			&& wep.pev.classname != "weapon_grapple";
 		
 		bool shouldSwap = false;
 		if (shouldForceThemedWeapon)
