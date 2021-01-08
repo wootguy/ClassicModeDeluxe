@@ -304,6 +304,7 @@ namespace ClassicModeDeluxe {
 		weapon_names["weapon_minigun"] = true;
 		weapon_names["weapon_uzi"] = true;
 		weapon_names["weapon_gauss"] = true;
+		weapon_names["weapon_shockrifle"] = true;
 		
 		// sven's opfor zombie has a broken head hitbox
 		op4_force_replace["models/opfor/zombie_soldier.mdl"] = replacementModelPath + "zombie_soldier.mdl";
