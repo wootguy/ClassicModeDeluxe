@@ -429,7 +429,7 @@ namespace ClassicModeDeluxe {
 		autoReplacements["models/hlclassic/w_weaponbox.mdl"] = "models/w_weaponbox.mdl";
 		autoReplacements["models/hlclassic/zombie.mdl"] = "models/zombie.mdl";
 		
-		autoReplacementMonsters["monster_agrunt"] = true;
+		autoReplacementMonsters["monster_alien_grunt"] = true;
 		autoReplacementMonsters["monster_apache"] = true;
 		autoReplacementMonsters["monster_barnacle"] = true;
 		autoReplacementMonsters["monster_barney"] = true;
