@@ -1,3 +1,7 @@
+// TODO:
+// - classic osprey for cm landing anim + vulnerable backside
+// - insertion2 no hwgrunt minigun
+// - classic wrong ammo pickup noise (sc_complex)
 
 enum map_types {
 	MAP_HALF_LIFE = 0,
@@ -46,6 +50,9 @@ string skill2_file = "skill_hl_hard.cfg";
 dictionary default_skill_settings;
 dictionary skill1_settings;
 dictionary skill2_settings;
+
+float g_last_intermission_check = 0;
+bool g_did_intermission_trigger = false;
 
 class MapStartEvent
 {
@@ -151,6 +158,7 @@ void PluginInit()
 	g_Module.ScriptInfo.SetContactInfo( "w00tguy123 - forums.svencoop.com" );
 	
 	g_Hooks.RegisterHook( Hooks::Player::ClientSay, @ClassicModeDeluxeSay );
+	g_Hooks.RegisterHook( Hooks::Player::PlayerPostThink, @PlayerPostThink );
 	
 	@cvar_initial_mode = CCVar("mode", -1, "0 = off, 1 = on, -1 = auto", ConCommandFlag::AdminOnly);
 	@cvar_skill = CCVar("skill", 1, "0 = SC 5.0, 1 = SC 3.0, 2 = HL", ConCommandFlag::AdminOnly);
@@ -165,6 +173,15 @@ void PluginInit()
 	bshift_maps = loadMapList(plugin_path + "bshift_maps.txt");
 	ignore_maps = loadMapList(plugin_path + "ignore_maps.txt");
 	//println("ClassicModeDeluxe: Map lists loaded");
+	
+	g_last_intermission_check = g_Engine.time;
+	g_Scheduler.SetInterval("intermission_check", 0.1f, -1);
+}
+
+void intermission_check() {
+	// scheduled functions don't run during intermission, so if there is a large gap since the last check
+	// then it means a game_end was triggered.
+	g_last_intermission_check = g_Engine.time;
 }
 
 void setClassicMapVar() {
@@ -221,6 +238,7 @@ bool is_map_restarting_endlessly() {
 
 void MapInit()
 {
+	g_did_intermission_trigger = false;
 	isIgnoredMap = ignore_maps.exists(g_Engine.mapname);
 	if (isIgnoredMap) {
 		return;
@@ -309,6 +327,33 @@ void MapActivate()
 		keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::PlayerDie";
 		g_EntityFuncs.CreateEntity("trigger_script", keys, true);
 	}
+}
+
+HookReturnCode PlayerPostThink(CBasePlayer@ plr) {
+	float timeSinceLastIntermissionCheck = g_Engine.time - g_last_intermission_check;
+	
+	if (timeSinceLastIntermissionCheck > 1.0f && !g_did_intermission_trigger) {
+		// a game_end must have been triggered.
+		// toggle classic mode now so that the server doesn't have to do a restart after loading the next map.
+		g_did_intermission_trigger = true;
+		
+		string nextMap = g_MapCycle.GetNextMap();
+		bool nextIsClassic = classic_maps.exists(nextMap);
+		
+		dictionary keys;
+		keys["targetname"] = "ClassicModeDeluxeTrigger";
+		keys["m_iszScriptFile"] = "ClassicModeDeluxe";
+		keys["m_iszScriptFunctionName"] = "ClassicModeDeluxe::MapChange";
+		keys["m_iMode"] = "1";
+		CBaseEntity@ classicTrigger = g_EntityFuncs.CreateEntity("trigger_script", keys, true);
+		int mapInfo = nextIsClassic ? 1 : 0;
+		classicTrigger.pev.rendermode = mapInfo;
+		
+		classicTrigger.Think();
+		g_EntityFuncs.FireTargets("ClassicModeDeluxeTrigger", classicTrigger, classicTrigger, USE_ON, 0.0f);
+	}
+	
+	return HOOK_CONTINUE;
 }
 
 bool doCommand(CBasePlayer@ plr, const CCommand@ args)
