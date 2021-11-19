@@ -92,12 +92,13 @@ namespace ClassicModeDeluxe {
 		// classic_maps.txt or ignore_maps.txt.
 		g_ClassicMode.SetShouldRestartOnChange(true);
 		
+		// always enable so that it can be turned on early for the next map, if it will be a classic map
+		g_ClassicMode.EnableMapSupport();
+		
 		if (isClassicMap)
 		{
 			g_Hooks.RegisterHook( Hooks::Game::EntityCreated, @EntityCreated );
 			g_Hooks.RegisterHook( Hooks::Player::PlayerTakeDamage, @PlayerTakeDamage );
-			
-			g_ClassicMode.EnableMapSupport();
 		
 			array<ItemMapping@> itemMappings = { 
 				ItemMapping( "weapon_m16", "weapon_9mmAR" ),
@@ -131,6 +132,20 @@ namespace ClassicModeDeluxe {
 		lastWeapons.resize(33);
 		satchels.resize(33);
 		MonitorPlayerWeapons();
+	}
+	
+	void MapChange(CBaseEntity@ caller, CBaseEntity@ activator, USE_TYPE useType, float value)
+	{
+		bool nextIsClassic = caller.pev.rendermode != 0;
+		
+		// prevent a restart during the intermission
+		g_ClassicMode.SetShouldRestartOnChange(false);
+		
+		if (nextIsClassic != g_ClassicMode.IsEnabled())
+		{
+			g_ClassicMode.ResetState();
+			g_ClassicMode.SetEnabled(nextIsClassic);
+		}
 	}
 	
 	string GetReplacementWeaponModel(string model, string subfolder)
