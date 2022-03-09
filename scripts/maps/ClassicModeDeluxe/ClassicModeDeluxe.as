@@ -5,6 +5,7 @@
 // add voting
 // LD models for custom maps that were made for 4.x and later (from LD Pack)
 // allow mappers to copy-paste a gmr file into "gmr" without editing it
+// crash on mechanized2 because it uses GMR for satchels but not for the radio
 
 // Impossible replacements:
 // Player uzi shoot sound
@@ -556,19 +557,19 @@ namespace ClassicModeDeluxe {
 		entvars_t@ pevInflictor = info.pInflictor !is null ? info.pInflictor.pev : null;
 		entvars_t@ pevAttacker = info.pAttacker !is null ? info.pAttacker.pev : null;
 		
-		if (info.pInflictor !is null and plr !is null) {
-			if (plr.IRelationship(info.pInflictor) <= R_NO) {
-				return HOOK_CONTINUE; // don't take damage from other players or ally monsters
-			}
-			
-			if (!info.pInflictor.IsPlayer()) {
-				CBaseEntity@ owner = g_EntityFuncs.Instance(info.pInflictor.pev.owner);
-				if (plr.IRelationship(owner) <= R_NO) {
-					return HOOK_CONTINUE; // don't take damage from things another player owns (e.g. hornets)
-				}
+		if (info.pAttacker !is null and plr !is null and plr.IRelationship(info.pAttacker) <= R_NO) {
+			return HOOK_CONTINUE; // don't take damage from other players or ally monsters
+		}
+		
+		CBaseEntity@ owner = g_EntityFuncs.Instance(info.pInflictor.pev.owner);
+		if (info.pInflictor !is null and plr !is null and owner !is null) {
+			// checking if both the inflictor and owner are friendly because:
+			// - enemy projectiles can be friendly or neutral (grenade)
+			// - enemy owner can be friendly or neutral (monstermaker)
+			if (plr.IRelationship(info.pInflictor) <= R_NO and plr.IRelationship(owner) <= R_NO) {
+				return HOOK_CONTINUE; // don't take damage from things another player/friendly owns (e.g. hornets)
 			}
 		}
-			
 		
 		HalfLifeTakeDamage(plr, pevInflictor, pevAttacker, info.flDamage, info.bitsDamageType);
 		info.flDamage = 0; // bypass sven's damage logic
