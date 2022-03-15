@@ -557,16 +557,25 @@ namespace ClassicModeDeluxe {
 		entvars_t@ pevInflictor = info.pInflictor !is null ? info.pInflictor.pev : null;
 		entvars_t@ pevAttacker = info.pAttacker !is null ? info.pAttacker.pev : null;
 		
-		if (info.pAttacker !is null and plr !is null and plr.IRelationship(info.pAttacker) <= R_NO) {
+		if (plr is null or pevAttacker is null) {
+			return HOOK_CONTINUE;
+		}
+		
+		if (info.pAttacker !is null and plr.IRelationship(info.pAttacker) <= R_NO) {
+			//println("IGNORE " + info.pAttacker.pev.classname);
 			return HOOK_CONTINUE; // don't take damage from other players or ally monsters
 		}
 		
 		CBaseEntity@ owner = g_EntityFuncs.Instance(info.pInflictor.pev.owner);
-		if (info.pInflictor !is null and plr !is null and owner !is null) {
+		if (info.pInflictor !is null and owner !is null) {
 			// checking if both the inflictor and owner are friendly because:
 			// - enemy projectiles can be friendly or neutral (grenade)
 			// - enemy owner can be friendly or neutral (monstermaker)
+			
+			//println("HANDLE " + pevInflictor.classname + " " + owner.pev.classname);
+			
 			if (plr.IRelationship(info.pInflictor) <= R_NO and plr.IRelationship(owner) <= R_NO) {
+				//println("IGNORE " + info.pInflictor.pev.classname + " " + owner.pev.classname);
 				return HOOK_CONTINUE; // don't take damage from things another player/friendly owns (e.g. hornets)
 			}
 		}
