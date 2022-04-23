@@ -1836,6 +1836,9 @@ the_daikon_warfare3
 toonrun1
 toonrun2
 toonrun3
+toonrun1_classic
+toonrun2_classic
+toonrun3_classic
 uplink
 uplink_extended
 yabma
