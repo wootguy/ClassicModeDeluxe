@@ -33,6 +33,19 @@ of6a3
 of6a4
 of6a4b
 of6a5
+of1a1_mv2
+of1a2_mv2
+of1a3_mv2
+of2a1_mv2
+of2a2_mv2
+of3a1_mv2
+of4a1_mv2
+of4a2_mv2
+of5a1_mv2
+of5a2_mv2
+of6a1_mv2
+of6a2_mv2
+of7a0_mv2
 
 
 // custom maps from op4 or sven maps you're meant to be playing as soldiers
@@ -107,7 +120,7 @@ op4_sahara
 sc_hightopmission
 sc_another
 shadv_c0m1a
-shadv_c1m1b
+shadv_c0m1b
 shadv_c1m1
 shadv_c1m2
 bootsquad1
@@ -115,3 +128,21 @@ bootsquad2
 bootsquad3
 bootsquad4
 bootsquad5
+kcastle
+sc_opd
+evasion_1
+evasion_2
+sandstone_30
+ast_c01
+ast_c02
+ast_c03
+ast_c04
+ast_c05
+ast_c06
+ast_c07
+htc_c01
+htc_c02
+htc_c03
+htc_c04
+htc_c05
+

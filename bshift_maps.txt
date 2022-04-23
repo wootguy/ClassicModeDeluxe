@@ -79,3 +79,12 @@ asmap11c
 asmapend
 
 barney_beach
+
+ba_canal_mv2
+ba_power_mv2
+ba_security_mv2
+ba_tram_mv2
+ba_xena_mv2
+ba_xenb_mv2
+ba_yarda_mv2
+ba_yardb_mv2
