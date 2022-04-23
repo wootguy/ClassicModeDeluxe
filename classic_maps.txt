@@ -2100,9 +2100,6 @@ sc_ambush
 stranded
 exodus2
 aship1
-toonrun1_classic
-toonrun2_classic
-toonrun3_classic
 spaceprisoner
 spaceprisoner2
 
