@@ -384,6 +384,8 @@ bool doCommand(CBasePlayer@ plr, const CCommand@ args)
 					return true;
 				}
 				
+				g_Log.PrintF("[Admin] " + plr.pev.netname + " did " + args[0] + " " + args[1] + "\n");
+				
 				int oldClassicMode = g_classic_mode;
 				if (arg == "1" or arg == "on")
 				{
