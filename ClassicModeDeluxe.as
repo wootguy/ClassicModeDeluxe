@@ -86,6 +86,7 @@ dictionary loadMapList(string fpath)
 		f.ReadLine(line);
 		line.Trim();
 		line.Trim("\t");
+		line = line.ToLowercase();
 		if (line.Length() == 0 or line.Find("//") == 0)
 			continue;
 		maps[line] = true;
@@ -185,14 +186,16 @@ void intermission_check() {
 }
 
 void setClassicMapVar() {
-	isClassicMap = classic_maps.exists(g_Engine.mapname);
+	string map_name = g_Engine.mapname;
+	map_name = map_name.ToLowercase();
+	isClassicMap = classic_maps.exists(map_name);
 	
 	mapType = MAP_HALF_LIFE;
 	if (isClassicMap or g_classic_mode == MODE_ALWAYS_ON)
 	{
-		if (op4_maps.exists(g_Engine.mapname))
+		if (op4_maps.exists(map_name))
 			mapType = MAP_OPPOSING_FORCE;
-		else if (bshift_maps.exists(g_Engine.mapname))
+		else if (bshift_maps.exists(map_name))
 			mapType = MAP_BLUE_SHIFT;
 	}
 		
